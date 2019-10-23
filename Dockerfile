@@ -62,4 +62,4 @@ ENV HOME /home/logio
 ENV USER logio
 WORKDIR /home/logio
 
-CMD ["log.io-server",]
+CMD ["log.io-server"]

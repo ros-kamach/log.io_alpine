@@ -19,7 +19,7 @@ RUN \
     make install
 RUN \
     cd / && \
-    curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/build/yarnpkg/yarn-${YARN_VERSION}.tar.gz \
+    curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/build/nodejs/yarn-${YARN_VERSION}.tar.gz \
     --output yarn-${YARN_VERSION}.tar.gz && \
     mkdir /usr/local/share/yarn && \
     tar -xf yarn-${YARN_VERSION}.tar.gz -C /usr/local/share/yarn --strip 1 && \

@@ -1,3 +1,4 @@
+#!/bin/bash
 if [[ "${LOGIO_SERVER}" == "yes" ]]
     then
         log.io-server &

@@ -1,0 +1,18 @@
+logio_server:
+  image: 'roskamach/alpine_logio'
+  ports:
+    - '28778:28778'
+    - '28777:28777'
+  volumes:
+    - 'logio_conf:/home/logio/.log.io'
+  command: 'log.io-server &'
+  
+logio-harvester:
+  image: 'roskamach/alpine_logio'
+  volumes:
+    - ./harvester_conf:/home/logio/.log.io
+    - ./test_logs:/home/logio/logs
+  links:
+    - logio_server
+  user: root
+  command: 'log.io-harvester &'

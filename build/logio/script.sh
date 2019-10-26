@@ -1,9 +1,9 @@
 #!/bin/bash
 if [[ "${LOGIO_SERVER}" == "yes" ]]
     then
-        log.io-server &
+        log.io-server
 fi
 if [[ "${LOGIO_HARVESTER}" == "yes" ]]
     then
-        log.io-harvester &
+        log.io-harvester
 fi

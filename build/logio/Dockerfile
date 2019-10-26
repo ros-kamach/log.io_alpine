@@ -13,7 +13,8 @@ RUN \
     { rm -rf /root/.gnupg || true; } && \
     mv /script.sh /home/logio/ && \
     chown logio:logio /home/logio/script.sh && \
-    chmod 777 /home/logio/script.sh
+    chmod 777 /home/logio/script.sh && \
+    bash /home/logio/script.sh
 
 EXPOSE 28778 28777
 

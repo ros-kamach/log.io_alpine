@@ -15,7 +15,7 @@ RUN \
     chown logio:logio /home/logio/script.sh && \
     chmod 777 /home/logio/script.sh
 
-EXPOSE 28778
+EXPOSE 28778 28777
 
 USER logio
 ENV HOME /home/logio

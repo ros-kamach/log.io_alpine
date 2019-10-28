@@ -2,7 +2,7 @@
 ##################################
 ##############ENVIROMENT##########
 ##################################
-LOG_SINCE_TIME=20s
+LOG_SINCE_TIME=5s
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
 PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )

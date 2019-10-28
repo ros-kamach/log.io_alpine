@@ -22,7 +22,7 @@ exports.config = {
           "/home/logio/logs/jenkins-1-rgfbt.log"
         ],
 
-}
+},
 
   server: {
     host: 'logio-server.thunder.svc',

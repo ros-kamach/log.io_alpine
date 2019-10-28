@@ -13,8 +13,7 @@ READOUT_MAX_TIME=30s
 ###Create Template for Harvester##
 ##################################
 constructor_harvester_conf_start () {
-# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-cat <<EOF | tee -a ./harvester_conf/harvester.conf
+cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 exports.config = {
   nodeName: "${1}",
   logStreams: {
@@ -22,15 +21,13 @@ EOF
 }
 ##################################
 constructor_harvester_conf_stream_log () {
-# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-cat <<EOF | tee -a ./harvester_conf/harvester.conf
+cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
     "${1}": ["./logs/${1}.log"],
 EOF
 }
 ##################################
 constructor_harvester_conf_end () {
-# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-cat <<EOF | tee -a ./harvester_conf/harvester.conf
+cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 },
   server: {
     host: '${1}',
@@ -115,11 +112,9 @@ if [ "$PROJECT_NAME" == "all" ]
                     check_pod_not_null ${value} ${READOUT_MAX_TIME} ${SINCE_TIME}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
-            # log.io-harvester &
-            # sleep 5
-            # rm -rf ./harvester.conf
-            mv ./harvester_conf/harvester.conf ./harvester_conf/${value}_harvester.conf
+            log.io-harvester &
             sleep 5
+            rm -rf ./harvester.conf
         done
     else
         constructor_harvester_conf_start ${PROJECT_NAME}
@@ -133,8 +128,7 @@ if [ "$PROJECT_NAME" == "all" ]
                 check_pod_not_null ${PROJECT_NAME} ${READOUT_MAX_TIME} ${SINCE_TIME}
         fi
         constructor_harvester_conf_end ${LOGIO_SERVER}
-        # log.io-harvester &
-        mv ./harvester_conf/harvester.conf ./harvester_conf/${PROJECT_NAME}_harvester.conf
+        log.io-harvester &
         sleep 5
-        # rm -rf ./harvester.conf
+        rm -rf ./harvester.conf
 fi

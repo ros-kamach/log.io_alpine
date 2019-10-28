@@ -6,6 +6,10 @@ LOG_SINCE_TIME=20s
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
 PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
+###Uncoment to connect only pod##
+#######by specific name part#####
+$SPECIFIC_GREP="| grep jenkins"
+####
 ##################################
 ###Create Template for Harvester##
 ##################################
@@ -26,7 +30,6 @@ EOF
 constructor_harvester_conf_end () {
 cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 },
-
   server: {
     host: '$1',
     port: 28777
@@ -92,7 +95,7 @@ for value in $PROJECT_LIST; do
             printf "\nThere are no pods in project $value"
         else
             printf "\nPods in project $value"
-            PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 )
+            PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 $SPECIFIC_GREP )
             echo $PODS_LIST | tr ' ' '\n' > ./pods/"$value"_pods.list
             check_pod_not_null $value
     fi

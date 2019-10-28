@@ -8,19 +8,64 @@ metadata:
   namespace: openshift
 objects:
 
-#Create build with docker strategy (Thunder)
+#Import image from axternal repo to lockal
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: nodejs_alpine
+    namespace: ${JENKINS_PROJECT_NAME}
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations:
+        openshift.io/imported-from: roskamach/nodejs_alpine:v6.9.5
+      from:
+        kind: DockerImage
+        name: roskamach/nodejs_alpine:v6.9.5
+      generation: 2
+      importPolicy: {}
+      name: v6.9.5
+      referencePolicy:
+        type: Source
+
+#ImageStream for builded a
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: logio_alpine
+    namespace: ${JENKINS_PROJECT_NAME}
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
+
+#ImageStream for builded a
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: harvester_alpine
+    namespace: ${JENKINS_PROJECT_NAME}
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
+
+#Create build with docker strategy for Logio Server
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     name: logio-alpine
-    namespace: jenkins-ci
+    namespace: ${JENKINS_PROJECT_NAME}
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
     output:
       to:
         kind: ImageStreamTag
-        name: logio_alpine:v6.9.5
+        name: logio_alpine:latest
     postCommit: {}
     resources: {}
     runPolicy: Serial
@@ -31,22 +76,13 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        # env:
-        #   - name: PHP_MEMORY_LIMIT
-        #     value: 256M
-        #   - name: DRUSH_INSTALL
-        #     value: 'yes'
-        #   - name: PROMETHEUS_METRICS_INSTALL
-        #     value: 'yes'
-        #   - name: SITE_INSTALL
-        #     # value: 'yes'
-        #     value: 'no'
-        #   - name: ENABLE_METRICS
-        #     # value: 'yes'
-        #     value: 'no'
+        env:
+          - name: OPENSHIFT_CLI
+            # value: 'yes'
+            value: 'no'
         from:
           kind: ImageStreamTag
-          name: roskamach/logio_alpine:v6.9.5
+          name: nodejs_alpine:v6.9.5
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers:
@@ -57,19 +93,57 @@ objects:
         secret: aNSpMKtoDrqplwXCFnw4
       type: Generic
     - type: ConfigChange
-    - imageChange:
-        lastTriggeredImageID: roskamach/logio_alpine
-      type: ImageChange
+    # - imageChange:
+    #     lastTriggeredImageID: roskamach/nodejs_alpine
+    #   type: ImageChange
 
 
-#ImageStream for builded a
-- apiVersion: image.openshift.io/v1
-  kind: ImageStream
+#Create build with docker strategy for Harvester
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
   metadata:
-    name: logio_alpine
-    namespace: jenkins-ci
+    name: harvester-alpine
+    namespace: ${JENKINS_PROJECT_NAME}
   spec:
-    lookupPolicy:
-      local: false
-  status:
-    dockerImageRepository: docker-registry.default.svc/jenkins-ci/logio_alpine
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: harvester_alpine:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: /build/logio
+      git:
+        uri: https://github.com/ros-kamach/log.io_alpine
+      type: Git
+    strategy:
+      dockerStrategy:
+        env:
+          - name: OPENSHIFT_CLI
+            value: 'yes'
+            # value: 'no'
+        from:
+          kind: ImageStreamTag
+          name: nodejs_alpine:v6.9.5
+      type: Docker
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - github:
+        secret: eRWXyQKLJT9qXSZzWdNB
+      type: GitHub
+    - generic:
+        secret: aNSpMKtoDrqplwXCFnw4
+      type: Generic
+    - type: ConfigChange
+    # - imageChange:
+    #     lastTriggeredImageID: roskamach/logio_alpine
+    #   type: ImageChange
+
+parameters:
+- description: Project (Namespace)
+  displayName: Project (Namespace)
+  name: JENKINS_PROJECT_NAME
+  value: "jenkins-ci"

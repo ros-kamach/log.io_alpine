@@ -1,0 +1,349 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  app: logio-deployment
+  template: logio-deployment-template
+metadata:
+  name: logio-deployment
+  namespace: openshift
+objects:
+
+#Logio server Deployment
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    labels:
+      app: logio-server
+    name: logio-server
+    namespace: ${THUNDER_PROJECT_NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: logio-server
+      deploymentconfig: logio-server
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftWebConsole
+        creationTimestamp: null
+        labels:
+          app: logio-server
+          deploymentconfig: logio-server
+      spec:
+        containers:
+          - env:
+              - name: LOGIO_SERVER
+                value: 'yes'
+              - name: OPENSHIFT_CLI
+                value: 'no'
+            image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
+            imagePullPolicy: Always
+            name: logio-server
+            ports:
+              - containerPort: 28777
+                protocol: TCP
+              - containerPort: 28778
+                protocol: TCP
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+      - type: ConfigChange
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+            - logio-server
+          from:
+            kind: ImageStreamTag
+            name: 'logio_alpine:latest'
+            namespace: ${JENKINS_PROJECT_NAME}
+          lastTriggeredImage: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
+        type: ImageChange
+
+#Logio Server service
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    labels:
+      app: logio-server
+    name: logio-server
+    namespace: ${THUNDER_PROJECT_NAME}
+  spec:
+    ports:
+      - name: 28777-tcp
+        port: 28777
+        protocol: TCP
+        targetPort: 28777
+      - name: 28778-tcp
+        port: 28778
+        protocol: TCP
+        targetPort: 28778
+    selector:
+      deploymentconfig: logio-server
+    sessionAffinity: None
+    type: ClusterIP
+  # status:
+  #   loadBalancer: {}
+
+#Logio Server Route
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: 'true'
+    labels:
+      app: logio-server
+    name: logio
+    namespace: ${THUNDER_PROJECT_NAME}
+  spec:
+    port:
+      targetPort: 28778-tcp
+    to:
+      kind: Service
+      name: logio-server
+      weight: 100
+    wildcardPolicy: None
+
+#Service Account for oc view permittion
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: harvester
+    namespace: ${THUNDER_PROJECT_NAME}
+
+# #Create Role
+# - apiVersion: rbac.authorization.k8s.io/v1beta1
+#   kind: Role
+#   metadata:
+#     name: harvester_view
+#     namespace: ${THUNDER_PROJECT_NAME}
+#   rules:
+#   # Just an example, feel free to change it
+#   - apiGroups: [""]
+#     resources: ["pods"]
+#     verbs: ["get", "watch", "list"]
+
+# #Add RBAC to SA 
+# - apiVersion: rbac.authorization.k8s.io/v1beta1
+#   kind: RoleBinding
+#   metadata:
+#     name: harvester_rbac
+#     namespace: ${THUNDER_PROJECT_NAME}
+#   subjects:
+#     - kind: ServiceAccount
+#       name: harvester
+#   roleRef:
+#     kind: Role
+#     name: harvester_view
+#     apiGroup: rbac.authorization.k8s.io
+
+#RBAC for adding SA multiproject reed permition
+- apiVersion: rbac.authorization.k8s.io/v1beta1
+  kind: ClusterRoleBinding
+  metadata:
+    name: harvester_rbac
+  subjects:
+    - kind: ServiceAccount
+      name: harvester
+      namespace: ${THUNDER_PROJECT_NAME}
+  roleRef:
+    kind: ClusterRole
+    name: cluster-reader
+    apiGroup: rbac.authorization.k8s.io
+
+# Allow pull image from project "jenkins-ci" to "thunder"
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: system:image-puller
+    namespace: ${JENKINS_PROJECT_NAME}
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: system:image-puller
+  subjects:
+  - kind: ServiceAccount
+    name: harvester
+    namespace: ${THUNDER_PROJECT_NAME}
+  - kind: ServiceAccount
+    name: default
+    namespace: ${THUNDER_PROJECT_NAME}
+
+#Allow containers to run as root
+- apiVersion: security.openshift.io/v1
+  kind: SecurityContextConstraints
+  metadata:
+    name: harvester
+    namespace: ${THUNDER_PROJECT_NAME}
+  volumes:
+  - configMap
+  - downwardAPI
+  - emptyDir
+  - persistentVolumeClaim
+  - projected
+  - secret
+  priority: 10
+  readOnlyRootFilesystem: false
+  requiredDropCapabilities:
+  - MKNOD
+  runAsUser:
+    type: RunAsAny
+  seLinuxContext:
+    type: MustRunAs
+  supplementalGroups:
+    type: RunAsAny
+  users:
+  - system:serviceaccount:${THUNDER_PROJECT_NAME}:harvester
+  allowHostDirVolumePlugin: false
+  allowHostIPC: false
+  allowHostNetwork: false
+  allowHostPID: false
+  allowHostPorts: false
+  allowPrivilegeEscalation: true
+  allowPrivilegedContainer: false
+  allowedCapabilities: null
+  defaultAddCapabilities: null
+  fsGroup:
+    type: RunAsAny
+  # groups:
+  # - system:cluster-admins
+
+#Deploy Hervester
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    labels:
+      app: logio-harvester
+    name: logio-harvester
+    namespace: ${THUNDER_PROJECT_NAME}
+  spec:
+    replicas: 1
+    selector:
+      app: logio-harvester
+      deploymentconfig: logio-harvester
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        # post:
+        #   execNewPod:
+        #     command:
+        #       - /bin/sh
+        #       - '-c'
+        #       - 'bash'
+        #       - mkdir /home/logio
+        #       - touch /home/logio/logs/error.log
+        #       - touch /home/logio/logs/access.log
+        #     containerName: logio-harvester
+        #   failurePolicy: Abort
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        annotations:
+          openshift.io/generated-by: OpenShiftWebConsole
+        creationTimestamp: null
+        labels:
+          app: logio-harvester
+          deploymentconfig: logio-harvester
+      spec:
+        containers:
+          - env:
+              - name: LOGIO_HARVESTER
+                value: 'yes'
+              - name: OPENSHIFT_CLI
+                # value: 'yes'
+                value: 'no'
+            image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
+            imagePullPolicy: Always
+            name: logio-harvester
+            ports:
+              - containerPort: 28777
+                protocol: TCP
+              - containerPort: 28778
+                protocol: TCP
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        serviceAccountName: harvester
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+      - type: ConfigChange
+      - imageChangeParams:
+          automatic: true
+          containerNames:
+            - logio-harvester
+          from:
+            kind: ImageStreamTag
+            name: 'harvester_alpine:latest'
+            namespace: ${JENKINS_PROJECT_NAME}
+          lastTriggeredImage: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
+        type: ImageChange
+
+#Harvester service
+- apiVersion: v1
+  kind: Service
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    labels:
+      app: logio-harvester
+    name: logio-harvester
+    namespace: ${THUNDER_PROJECT_NAME}
+  spec:
+    ports:
+      - name: 28777-tcp
+        port: 28777
+        protocol: TCP
+        targetPort: 28777
+      - name: 28778-tcp
+        port: 28778
+        protocol: TCP
+        targetPort: 28778
+    selector:
+      deploymentconfig: logio-harvester
+    sessionAffinity: None
+    type: ClusterIP
+  # status:
+  #   loadBalancer: {}
+
+parameters:
+- description: Project (Namespace)
+  displayName: Project (Namespace)
+  name: JENKINS_PROJECT_NAME
+  value: "jenkins-ci"
+- description: Project (Namespace)
+  displayName: Project (Namespace)
+  name: THUNDER_PROJECT_NAME
+  value: "thunder"

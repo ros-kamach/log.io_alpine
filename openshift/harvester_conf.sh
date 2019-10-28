@@ -78,7 +78,7 @@ fi
 ##################################
 check_pod_not_null () {
   for val in $( cat ./pods/$1_pods.list ); do
-      output=$(oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --tail=-1 -n $1)
+      output=$(oc logs -f $val --since=24h --follow=false --tail=-1 -n $1)
       if [[ $? != 0 ]] 
           then
               echo "Pod $val not runned"
@@ -91,12 +91,12 @@ check_pod_not_null () {
                 then
                     while :
                     do
-                        oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --pod-running-timeout=1m --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1
+                        oc logs -f $val --since=$3 --follow=false --pod-running-timeout=1m --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1
                     sleep $2
                     done &
                 else
                     oc logs -f $val --since=$LOG_SINCE_TIME --pod-running-timeout=15m --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1 &
-                    check_pid_kill $val $LOG_SINCE_TIME $1
+                    check_pid_kill $val $3 $1
               fi
       fi
   done
@@ -116,7 +116,7 @@ if [ "$PROJECT_NAME" == "all" ]
                     printf "\nPods in project $value"
                     PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 )
                     echo $PODS_LIST | tr ' ' '\n' > ./pods/"$value"_pods.list
-                    check_pod_not_null $value $READOUT_TIME
+                    check_pod_not_null $value $READOUT_TIME $LOG_SINCE_TIME
             fi
             constructor_harvester_conf_end $LOGIO_SERVER
             log.io-harvester &

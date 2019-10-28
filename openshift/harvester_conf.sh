@@ -8,14 +8,13 @@ DIR="pods"
 ##################################
 ###Write value "all" or specific##
 ###namespace to check for logs####
-# PROJECT_NAME=all
-PROJECT_NAME=jenkins-ci
+PROJECT_NAME=all
+# PROJECT_NAME=jenkins-ci
 ##################################
 ###Write value "all" or specific##
 ###namespace to check for logs####
-READ_PERIODICALY=YES
+READ_PERIODICALY=yes
 READOUT_TIME=30s
-# PROJECT_NAME=jenkins-ci
 
 ##################################
 ###Create Template for Harvester##

@@ -33,7 +33,7 @@ oc logs -f mysql-1-llmjp --tail=-1 -n thunder | tee /home/logio/logs/mysql-1-llm
 cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 exports.config = {
 server: {
-  host: '0.0.0.0',
+  host: 'logio-server.thunder.svc',
   port: 28777
   }
 }

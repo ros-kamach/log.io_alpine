@@ -1,29 +1,30 @@
 #!/bin/bash
-##################
-####ENVIROMENT####
+###############################
+###########ENVIROMENT##########
+###############################
 LOG_SINCE_TIME=24h
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
 PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
-##############################
-#Create Template for Harvester
+###############################
+#Create Template for Harvester#
+###############################
 constructor_harvester_conf_start () {
-# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-cat <<EOF | sudo tee -a ./harvester.conf
+cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 exports.config = {
   nodeName: "$1",
   logStreams: {
 EOF
 }
+###############################
 constructor_harvester_conf_stream_log () {
-# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-cat <<EOF | sudo tee -a ./harvester.conf
+cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
     "$1": ["./logs/$1.log"],
 EOF
 }
+###############################
 constructor_harvester_conf_end () {
-# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-cat <<EOF | sudo tee -a ./harvester.conf
+cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 },
 
   server: {
@@ -33,9 +34,9 @@ cat <<EOF | sudo tee -a ./harvester.conf
 }
 EOF
 }
-
-####################
-#Check PID Function#
+###############################
+########Check PID Function#####
+###############################
 check_pid_kill () {
 while :
 do
@@ -50,8 +51,9 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
 sleep 60
 done &
 }
-
-#Check Clear folder
+###############################
+#######Check Clear folder######
+###############################
 if [ -d "$DIR" ]
     then
         rm -rf "$DIR" logs harvester.conf
@@ -60,33 +62,29 @@ if [ -d "$DIR" ]
         mkdir "$DIR" logs
         rm -rf./harvester.conf   
 fi
-
-#Do for all not null output pods
+##############################
+####Check pod output pods#####
+######And Implement###########
+##############################
 check_pod_not_null () {
-# for FILEPATH in ./pods/$1_pods.list; do
-    # for ((i=0; i<=3; i++)); d
-        # for val in $( cat $FILEPATH ); do
-        for val in $( cat ./pods/$1_pods.list ); do
-            # FILENAME=$( echo $FILEPATH | awk -F ./pods/ '{print $2}' | awk -F _pods.list '{print $1}')
-            output=$(oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --tail=-1 -n $1)
-            if [[ $? != 0 ]] 
-                then
-                    echo "Pod $val not runned"
-                elif [[ ! $output ]]; then
-                    echo "Pod $val output NULL"
-                else
-                    echo "Pod $val connected"
-                    constructor_harvester_conf_stream_log $val
-                    oc logs -f $val --since=$LOG_SINCE_TIME --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1 &
-                    # check_pid_kill $val $LOG_SINCE_TIME $1
-
-            fi
-        done
-    # done
-# done
+  for val in $( cat ./pods/$1_pods.list ); do
+      output=$(oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --tail=-1 -n $1)
+      if [[ $? != 0 ]] 
+          then
+              echo "Pod $val not runned"
+          elif [[ ! $output ]]; then
+              echo "Pod $val output NULL"
+          else
+              echo "Pod $val connected"
+              constructor_harvester_conf_stream_log $val
+              oc logs -f $val --since=$LOG_SINCE_TIME --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1 &
+              check_pid_kill $val $LOG_SINCE_TIME $1
+      fi
+  done
 }
-
+###############################
 #Check All Pod list by namespaces
+################################
 for value in $PROJECT_LIST; do
     constructor_harvester_conf_start $value
     if [[ ! $( oc get pods -n $value 2> /dev/null ) ]] 
@@ -99,6 +97,6 @@ for value in $PROJECT_LIST; do
             check_pod_not_null $value
     fi
     constructor_harvester_conf_end $LOGIO_SERVER
-    # log.io-harvester & && sleep 5
+    log.io-harvester & && sleep 5
     rm -rf ./harvester.conf
 done

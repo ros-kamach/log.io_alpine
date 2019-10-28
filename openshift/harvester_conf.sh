@@ -5,14 +5,7 @@
 SINCE_TIME="1h"
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
-##################################
-###Write value "all" or specific##
-###namespace to check for logs####
 PROJECT_NAME=all 
-# PROJECT_NAME=jenkins-ci
-##################################
-###Write value "all" or specific##
-###namespace to check for logs####
 READ_PERIODICALY=yes
 READOUT_MAX_TIME=30s
 

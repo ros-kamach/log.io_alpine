@@ -10,6 +10,12 @@ DIR="pods"
 ###namespace to check for logs####
 PROJECT_NAME=all
 # PROJECT_NAME=jenkins-ci
+##################################
+###Write value "all" or specific##
+###namespace to check for logs####
+READ_PERIODICALY=YES
+READOUT_TIME=30s
+# PROJECT_NAME=jenkins-ci
 
 ##################################
 ###Create Template for Harvester##
@@ -81,8 +87,18 @@ check_pod_not_null () {
           else
               echo "Pod $val connected"
               constructor_harvester_conf_stream_log $val
-              oc logs -f $val --since=$LOG_SINCE_TIME --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1 &
-              check_pid_kill $val $LOG_SINCE_TIME $1
+              if [ "$READ_PERIODICALY" == "yes" ]
+                then
+                    while :
+                    do
+                        oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --pod-running-timeout=1m --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1
+                    sleep $2
+                    done &
+                    }
+                else
+                    oc logs -f $val --since=$LOG_SINCE_TIME --pod-running-timeout=15m --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1 &
+                    check_pid_kill $val $LOG_SINCE_TIME $1
+              fi
       fi
   done
 }
@@ -101,7 +117,7 @@ if [ "$PROJECT_NAME" == "all" ]
                     printf "\nPods in project $value"
                     PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 )
                     echo $PODS_LIST | tr ' ' '\n' > ./pods/"$value"_pods.list
-                    check_pod_not_null $value
+                    check_pod_not_null $value $READOUT_TIME
             fi
             constructor_harvester_conf_end $LOGIO_SERVER
             log.io-harvester &
@@ -117,7 +133,7 @@ if [ "$PROJECT_NAME" == "all" ]
                 printf "\nPods in project $PROJECT_NAME"
                 PODS_LIST=$( oc get pods -n $PROJECT_NAME | awk '{ print$1 }' | tail -n +2 )
                 echo $PODS_LIST | tr ' ' '\n' > ./pods/"$PROJECT_NAME"_pods.list
-                check_pod_not_null $PROJECT_NAME
+                check_pod_not_null $PROJECT_NAME $READOUT_TIME
         fi
         constructor_harvester_conf_end $LOGIO_SERVER
         log.io-harvester &

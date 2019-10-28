@@ -1,14 +1,14 @@
 #!/bin/bash
-###############################
-###########ENVIROMENT##########
-###############################
+##################################
+##############ENVIROMENT##########
+##################################
 LOG_SINCE_TIME=24h
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
 PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
-###############################
-#Create Template for Harvester#
-###############################
+##################################
+###Create Template for Harvester##
+##################################
 constructor_harvester_conf_start () {
 cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 exports.config = {
@@ -16,13 +16,13 @@ exports.config = {
   logStreams: {
 EOF
 }
-###############################
+##################################
 constructor_harvester_conf_stream_log () {
 cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
     "$1": ["./logs/$1.log"],
 EOF
 }
-###############################
+##################################
 constructor_harvester_conf_end () {
 cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 },
@@ -34,9 +34,9 @@ cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 }
 EOF
 }
-###############################
-########Check PID Function#####
-###############################
+##################################
+#########Check PID Function#######
+##################################
 check_pid_kill () {
 while :
 do
@@ -51,9 +51,9 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
 sleep 60
 done &
 }
-###############################
-#######Check Clear folder######
-###############################
+##################################
+########Check Clear folder########
+##################################
 if [ -d "$DIR" ]
     then
         rm -rf "$DIR" logs harvester.conf
@@ -62,10 +62,10 @@ if [ -d "$DIR" ]
         mkdir "$DIR" logs
         rm -rf./harvester.conf   
 fi
-##############################
-####Check pod output pods#####
-######And Implement###########
-##############################
+##################################
+######Check pod output pods#######
+#########And Implement############
+##################################
 check_pod_not_null () {
   for val in $( cat ./pods/$1_pods.list ); do
       output=$(oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --tail=-1 -n $1)
@@ -82,9 +82,9 @@ check_pod_not_null () {
       fi
   done
 }
-###############################
-#Check All Pod list by namespaces
-################################
+##################################
+#Check All Pod list by namespaces#
+##################################
 for value in $PROJECT_LIST; do
     constructor_harvester_conf_start $value
     if [[ ! $( oc get pods -n $value 2> /dev/null ) ]] 
@@ -101,3 +101,4 @@ for value in $PROJECT_LIST; do
     sleep 5
     rm -rf ./harvester.conf
 done
+##################################

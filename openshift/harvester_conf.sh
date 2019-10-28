@@ -5,11 +5,16 @@
 LOG_SINCE_TIME=5s
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
-PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
+##################################
+###Write value "all" or specific##
+###namespace to check for logs####
+PROJECT_NAME=all
+# PROJECT_NAME=jenkins-ci
+
 ###Uncoment to connect only pod##
 #######by specific name part#####
-# $SPECIFIC_GREP="| grep jenkins"
-####
+$SPECIFIC_GREP="| grep jenkins"
+
 ##################################
 ###Create Template for Harvester##
 ##################################
@@ -86,22 +91,40 @@ check_pod_not_null () {
   done
 }
 ##################################
-#Check All Pod list by namespaces#
+###Check Pod list by namespaces###
 ##################################
-for value in $PROJECT_LIST; do
-    constructor_harvester_conf_start $value
-    if [[ ! $( oc get pods -n $value $SPECIFIC_GREP 2> /dev/null ) ]] 
-        then
-            printf "\nThere are no pods in project $value"
-        else
-            printf "\nPods in project $value"
-            PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 )
-            echo $PODS_LIST | tr ' ' '\n' > ./pods/"$value"_pods.list
-            check_pod_not_null $value
-    fi
-    constructor_harvester_conf_end $LOGIO_SERVER
-    log.io-harvester &
-    sleep 5
-    rm -rf ./harvester.conf
-done
-##################################
+if [ "$PROJECT_NAME" == "all" ]
+    then
+        PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
+        for value in $PROJECT_LIST; do
+            constructor_harvester_conf_start $value
+            if [[ ! $( oc get pods -n $value $SPECIFIC_GREP 2> /dev/null ) ]] 
+                then
+                    printf "\nThere are no pods in project $value"
+                else
+                    printf "\nPods in project $value"
+                    PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 )
+                    echo $PODS_LIST | tr ' ' '\n' > ./pods/"$value"_pods.list
+                    check_pod_not_null $value
+            fi
+            constructor_harvester_conf_end $LOGIO_SERVER
+            log.io-harvester &
+            sleep 5
+            rm -rf ./harvester.conf
+        done
+    else
+        constructor_harvester_conf_start $PROJECT_NAME
+        if [[ ! $( oc get pods -n $PROJECT_NAME $SPECIFIC_GREP 2> /dev/null ) ]] 
+            then
+                printf "\nThere are no pods in project $PROJECT_NAME"
+            else
+                printf "\nPods in project $PROJECT_NAME"
+                PODS_LIST=$( oc get pods -n $PROJECT_NAME | awk '{ print$1 }' | tail -n +2 )
+                echo $PODS_LIST | tr ' ' '\n' > ./pods/"$PROJECT_NAME"_pods.list
+                check_pod_not_null $PROJECT_NAME
+        fi
+        constructor_harvester_conf_end $LOGIO_SERVER
+        log.io-harvester &
+        sleep 5
+        rm -rf ./harvester.conf
+fi

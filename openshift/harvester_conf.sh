@@ -97,6 +97,7 @@ for value in $PROJECT_LIST; do
             check_pod_not_null $value
     fi
     constructor_harvester_conf_end $LOGIO_SERVER
-    log.io-harvester & && sleep 5
+    log.io-harvester &
+    sleep 5
     rm -rf ./harvester.conf
 done

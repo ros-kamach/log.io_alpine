@@ -11,10 +11,6 @@ DIR="pods"
 PROJECT_NAME=all
 # PROJECT_NAME=jenkins-ci
 
-###Uncoment to connect only pod##
-#######by specific name part#####
-SPECIFIC_GREP="| grep jenkins"
-
 ##################################
 ###Create Template for Harvester##
 ##################################
@@ -98,7 +94,7 @@ if [ "$PROJECT_NAME" == "all" ]
         PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
         for value in $PROJECT_LIST; do
             constructor_harvester_conf_start $value
-            if [[ ! $( oc get pods -n $value $SPECIFIC_GREP 2> /dev/null ) ]] 
+            if [[ ! $( oc get pods -n $value 2> /dev/null ) ]] 
                 then
                     printf "\nThere are no pods in project $value"
                 else
@@ -114,7 +110,7 @@ if [ "$PROJECT_NAME" == "all" ]
         done
     else
         constructor_harvester_conf_start $PROJECT_NAME
-        if [[ ! $( oc get pods -n $PROJECT_NAME $SPECIFIC_GREP 2> /dev/null ) ]] 
+        if [[ ! $( oc get pods -n $PROJECT_NAME 2> /dev/null ) ]] 
             then
                 printf "\nThere are no pods in project $PROJECT_NAME"
             else

@@ -1,41 +1,104 @@
 #!/bin/bash
-mkdir /home/logio/logs
-# touch /home/logio/logs/error.log
-# touch /home/logio/logs/access.log
-rm /home/logio/.log.io/harvester.conf 2>/dev/null
-oc logs -f jenkins-1-rgfbt --tail=-1 -n jenkins-ci | tee /home/logio/logs/jenkins-1-rgfbt.log >  /dev/null 2>&1 &
-oc logs -f mysql-1-llmjp --tail=-1 -n thunder | tee /home/logio/logs/mysql-1-llmjp.log >  /dev/null 2>&1 &
-cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
+##################
+####ENVIROMENT####
+LOG_SINCE_TIME=24h
+LOGIO_SERVER=logio-server.thunder.svc
+DIR="pods"
+PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
+##############################
+#Create Template for Harvester
+constructor_harvester_conf_start () {
+# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
+cat <<EOF | sudo tee -a ./harvester.conf
 exports.config = {
-  nodeName: "jenkins-ci",
+  nodeName: "$1",
   logStreams: {
-    "jenkins-1-rgfbt": ["./logs/jenkins-1-rgfbt.log"],
-    "mysql": ["./logs/mysql-1-llmjp.log"],
-},
-
-  server: {
-    host: 'logio-server.thunder.svc',
-    port: 28777
-  }
+EOF
 }
-exports.config = {
-  nodeName: "thunder",
-  logStreams: {
-    "mysql-1-llmjp": ["./logs/mysql-1-llmjp.log"],
-    "jenkins": ["./logs/jenkins-1-rgfbt.log"],
+constructor_harvester_conf_stream_log () {
+# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
+cat <<EOF | sudo tee -a ./harvester.conf
+    "$1": ["./logs/$1.log"],
+EOF
+}
+constructor_harvester_conf_end () {
+# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
+cat <<EOF | sudo tee -a ./harvester.conf
 },
 
   server: {
-    host: 'logio-server.thunder.svc',
+    host: '$1',
     port: 28777
   }
 }
 EOF
-# cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-# exports.config = {
-# server: {
-#   host: 'logio-server.thunder.svc',
-#   port: 28777
-#   }
-# }
-# EOF
+}
+
+####################
+#Check PID Function#
+check_pid_kill () {
+while :
+do
+files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
+    if [[ $? != 0 ]] 
+    then
+        echo "Command failed."
+    elif [[ ! $files ]]; then
+        printf "\nNo PID founded for $1\n!!! Started\n"
+        oc logs -f $1 --since=$2 --tail=-1 -n $3| tee ./logs/$1.log >  /dev/null 2>&1 &
+    fi
+sleep 60
+done &
+}
+
+#Check Clear folder
+if [ -d "$DIR" ]
+    then
+        rm -rf "$DIR" logs harvester.conf
+        mkdir "$DIR" logs
+    else
+        mkdir "$DIR" logs
+        rm -rf./harvester.conf   
+fi
+
+#Do for all not null output pods
+check_pod_not_null () {
+# for FILEPATH in ./pods/$1_pods.list; do
+    # for ((i=0; i<=3; i++)); d
+        # for val in $( cat $FILEPATH ); do
+        for val in $( cat ./pods/$1_pods.list ); do
+            # FILENAME=$( echo $FILEPATH | awk -F ./pods/ '{print $2}' | awk -F _pods.list '{print $1}')
+            output=$(oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --tail=-1 -n $1)
+            if [[ $? != 0 ]] 
+                then
+                    echo "Pod $val not runned"
+                elif [[ ! $output ]]; then
+                    echo "Pod $val output NULL"
+                else
+                    echo "Pod $val connected"
+                    constructor_harvester_conf_stream_log $val
+                    oc logs -f $val --since=$LOG_SINCE_TIME --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1 &
+                    # check_pid_kill $val $LOG_SINCE_TIME $1
+
+            fi
+        done
+    # done
+# done
+}
+
+#Check All Pod list by namespaces
+for value in $PROJECT_LIST; do
+    constructor_harvester_conf_start $value
+    if [[ ! $( oc get pods -n $value 2> /dev/null ) ]] 
+        then
+            printf "\nThere are no pods in project $value"
+        else
+            printf "\nPods in project $value"
+            PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 )
+            echo $PODS_LIST | tr ' ' '\n' > ./pods/"$value"_pods.list
+            check_pod_not_null $value
+    fi
+    constructor_harvester_conf_end $LOGIO_SERVER
+    # log.io-harvester & && sleep 5
+    rm -rf ./harvester.conf
+done

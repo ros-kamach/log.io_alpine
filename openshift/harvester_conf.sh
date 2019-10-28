@@ -94,7 +94,6 @@ check_pod_not_null () {
                         oc logs -f $val --since=$LOG_SINCE_TIME --follow=false --pod-running-timeout=1m --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1
                     sleep $2
                     done &
-                    }
                 else
                     oc logs -f $val --since=$LOG_SINCE_TIME --pod-running-timeout=15m --tail=-1 -n $1 | tee ./logs/$val.log >  /dev/null 2>&1 &
                     check_pid_kill $val $LOG_SINCE_TIME $1

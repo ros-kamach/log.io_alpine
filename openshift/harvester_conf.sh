@@ -13,7 +13,7 @@ PROJECT_NAME=all
 
 ###Uncoment to connect only pod##
 #######by specific name part#####
-$SPECIFIC_GREP="| grep jenkins"
+SPECIFIC_GREP="| grep jenkins"
 
 ##################################
 ###Create Template for Harvester##

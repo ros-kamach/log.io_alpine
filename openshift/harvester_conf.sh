@@ -90,12 +90,12 @@ check_pod_not_null () {
 ##################################
 for value in $PROJECT_LIST; do
     constructor_harvester_conf_start $value
-    if [[ ! $( oc get pods -n $value 2> /dev/null ) ]] 
+    if [[ ! $( oc get pods -n $value $SPECIFIC_GREP 2> /dev/null ) ]] 
         then
             printf "\nThere are no pods in project $value"
         else
             printf "\nPods in project $value"
-            PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 $SPECIFIC_GREP )
+            PODS_LIST=$( oc get pods -n $value | awk '{ print$1 }' | tail -n +2 )
             echo $PODS_LIST | tr ' ' '\n' > ./pods/"$value"_pods.list
             check_pod_not_null $value
     fi

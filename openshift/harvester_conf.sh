@@ -9,8 +9,8 @@ cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
 exports.config = {
   nodeName: "jenkins-ci",
   logStreams: {
-    jenkins-1-rgfbt: ["./logs/jenkins-1-rgfbt.log"],
-    mysql-1-llmjp: ["./logs/mysql-1-llmjp.log"],
+    "jenkins-1-rgfbt": ["./logs/jenkins-1-rgfbt.log"],
+    "mysql": ["./logs/mysql-1-llmjp.log"],
 },
 
   server: {
@@ -21,8 +21,8 @@ exports.config = {
 exports.config = {
   nodeName: "thunder",
   logStreams: {
-    mysql-1-llmjp: ["./logs/mysql-1-llmjp.log"],
-    jenkins: ["./logs/jenkins-1-rgfbt.log"],
+    "mysql-1-llmjp": ["./logs/mysql-1-llmjp.log"],
+    "jenkins": ["./logs/jenkins-1-rgfbt.log"],
 },
 
   server: {

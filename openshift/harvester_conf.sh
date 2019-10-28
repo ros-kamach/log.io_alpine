@@ -24,5 +24,3 @@ exports.config = {
   }
 }
 EOF
-
-log.io-harvester

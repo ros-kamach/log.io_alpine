@@ -8,7 +8,7 @@ DIR="pods"
 PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
 ###Uncoment to connect only pod##
 #######by specific name part#####
-$SPECIFIC_GREP="| grep jenkins"
+# $SPECIFIC_GREP="| grep jenkins"
 ####
 ##################################
 ###Create Template for Harvester##

@@ -86,10 +86,13 @@ check_pod_not_null () {
                 then
                     while :
                     do
+                        echo "READ_PERIODICALY=yes"
+                        echo "While do fot ${val} in project ${1}"
                         oc logs -f ${val} --since=${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                         sleep ${2}
                     done &
                 else
+                    echo "READ_PERIODICALY=no=$READ_PERIODICALY"
                     oc logs -f ${val} --since=${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                     check_pid_kill ${val} ${3} ${1}
               fi
@@ -114,9 +117,11 @@ if [ "$PROJECT_NAME" == "all" ]
                     check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
+            echo "PROJECT_NAME=all"
+            echo "Project name ${value}"
             log.io-harvester &
-            # sleep 5
-            # rm -rf .log.io/harvester.conf
+            sleep 5
+            rm -rf .log.io/harvester.conf
         done
     else
         constructor_harvester_conf_start ${PROJECT_NAME}
@@ -129,8 +134,10 @@ if [ "$PROJECT_NAME" == "all" ]
                 echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${PROJECT_NAME}_pods.list
                 check_pod_not_null ${PROJECT_NAME} ${READOUT_PERIOD} ${SINCE_TIME}
         fi
+        echo "PROJECT_NAME=no=$PROJECT_NAME"
+        echo "Project name ${value}"
         constructor_harvester_conf_end ${LOGIO_SERVER}
         log.io-harvester &
         sleep 5
-        rm -rf ./harvester.conf
+        rm .log.io/harvester.conf
 fi

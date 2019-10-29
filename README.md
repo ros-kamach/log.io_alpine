@@ -16,6 +16,7 @@ example:
 $ bash prometheus-grafana.sh openshift-metrics apply
 ```
 ![alt text](http://logio.org/logio_diagram1.png)
+
 ![alt text](https://github.com/ros-kamach/openshift_monitoring/raw/master/3.png)
 ![alt text](https://github.com/ros-kamach/openshift_monitoring/raw/master/2.png)
 ![alt text](https://github.com/ros-kamach/openshift_monitoring/raw/master/1.png)

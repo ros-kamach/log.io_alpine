@@ -2,12 +2,12 @@
 ##################################
 ##############ENVIROMENT##########
 ##################################
-SINCE_TIME="1h"
+SINCE_TIME="15s"
 LOGIO_SERVER=logio-server.thunder.svc
-DIR="pods"
+DIR="logio_project"
 #What project connect to logio (all or one specific)
-# PROJECT_NAME=all
-PROJECT_NAME=thunder
+PROJECT_NAME=all
+# PROJECT_NAME=thunder
 #It annables periodical session for readout logs
 READ_PERIODICALY=yes
 READOUT_PERIOD=30s
@@ -16,7 +16,7 @@ READOUT_PERIOD=30s
 ###Create Template for Harvester##
 ##################################
 constructor_harvester_conf_start () {
-cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
+cat <<EOF | tee -a ./.log.io/harvester.conf
 exports.config = {
   nodeName: "${1}",
   logStreams: {
@@ -24,13 +24,13 @@ EOF
 }
 ##################################
 constructor_harvester_conf_stream_log () {
-cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
-    "${1}": ["./logs/${1}.log"],
+cat <<EOF | tee -a ./.log.io/harvester.conf
+    "${1}": ["./logio_project/logs/${1}.log"],
 EOF
 }
 ##################################
 constructor_harvester_conf_end () {
-cat <<EOF | tee -a /home/logio/.log.io/harvester.conf
+cat <<EOF | tee -a ./.log.io/harvester.conf
 },
   server: {
     host: '${1}',
@@ -51,8 +51,7 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
         echo "Command failed."
     elif [[ ! ${files} ]]; then
         printf "\nNo PID founded for ${1}\n!!! Started\n"
-        echo 4444444
-        oc logs -f ${1} --since=${2} --tail=-1 -n ${3}| tee ./logs/${1}.log >  /dev/null 2>&1 &
+        oc logs -f ${1} --since=${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &
     fi
 sleep 60
 done &
@@ -73,7 +72,7 @@ fi
 #########And Implement############
 ##################################
 check_pod_not_null () {
-  for val in $( cat ./pods/${1}_pods.list ); do
+  for val in $( cat ./logio_project/pods/${1}_pods.list ); do
       output=$(oc logs -f ${val} --follow=false --tail=-1 -n ${1})
       if [[ $? != 0 ]] 
           then
@@ -87,11 +86,11 @@ check_pod_not_null () {
                 then
                     while :
                     do
-                        oc logs -f ${val} --since=${3} --follow=false --tail=-1 -n ${1} | tee ./logs/${val}.log >  /dev/null 2>&1 &
+                        oc logs -f ${val} --since=${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                         sleep ${2}
                     done &
                 else
-                    oc logs -f ${val} --since=${3} --pod-running-timeout=15m --tail=-1 -n ${1} | tee ./logs/${val}.log >  /dev/null 2>&1 &
+                    oc logs -f ${val} --since=${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                     check_pid_kill ${val} ${3} ${1}
               fi
       fi
@@ -111,7 +110,7 @@ if [ "$PROJECT_NAME" == "all" ]
                 else
                     printf "\nPods in project ${value}"
                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
-                    echo ${PODS_LIST} | tr ' ' '\n' > ./pods/${value}_pods.list
+                    echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${value}_pods.list
                     check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
@@ -127,7 +126,7 @@ if [ "$PROJECT_NAME" == "all" ]
             else
                 printf "\nPods in project ${PROJECT_NAME}"
                 PODS_LIST=$( oc get pods -n ${PROJECT_NAME} | awk '{ print$1 }' | tail -n +2 )
-                echo ${PODS_LIST} | tr ' ' '\n' > ./pods/${PROJECT_NAME}_pods.list
+                echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${PROJECT_NAME}_pods.list
                 check_pod_not_null ${PROJECT_NAME} ${READOUT_PERIOD} ${SINCE_TIME}
         fi
         constructor_harvester_conf_end ${LOGIO_SERVER}

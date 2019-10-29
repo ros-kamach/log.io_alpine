@@ -43,7 +43,7 @@ EOF
 #########Check PID Function#######
 ##################################
 check_pid_kill () {
-while :
+while true
 do
 files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
     if [[ $? != 0 ]] 
@@ -84,7 +84,7 @@ check_pod_not_null () {
               constructor_harvester_conf_stream_log ${val}
               if [ "${READ_PERIODICALY}" == "yes" ]
                 then
-                    while :
+                    while true
                     do
                         echo "READ_PERIODICALY=yes"
                         echo "While do fot ${val} in project ${1}"

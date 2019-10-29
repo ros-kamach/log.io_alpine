@@ -5,9 +5,11 @@
 SINCE_TIME="1h"
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
+#What project connect to logio (all or one specific)
 PROJECT_NAME=all 
+#It annables periodical session for readout logs
 READ_PERIODICALY=yes
-READOUT_MAX_TIME=30s
+READOUT_PERIOD=30s
 
 ##################################
 ###Create Template for Harvester##
@@ -109,7 +111,7 @@ if [ "$PROJECT_NAME" == "all" ]
                     printf "\nPods in project ${value}"
                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
                     echo ${PODS_LIST} | tr ' ' '\n' > ./pods/${value}_pods.list
-                    check_pod_not_null ${value} ${READOUT_MAX_TIME} ${SINCE_TIME}
+                    check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
             log.io-harvester &
@@ -125,7 +127,7 @@ if [ "$PROJECT_NAME" == "all" ]
                 printf "\nPods in project ${PROJECT_NAME}"
                 PODS_LIST=$( oc get pods -n ${PROJECT_NAME} | awk '{ print$1 }' | tail -n +2 )
                 echo ${PODS_LIST} | tr ' ' '\n' > ./pods/${PROJECT_NAME}_pods.list
-                check_pod_not_null ${PROJECT_NAME} ${READOUT_MAX_TIME} ${SINCE_TIME}
+                check_pod_not_null ${PROJECT_NAME} ${READOUT_PERIOD} ${SINCE_TIME}
         fi
         constructor_harvester_conf_end ${LOGIO_SERVER}
         log.io-harvester &

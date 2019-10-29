@@ -5,7 +5,8 @@
 SINCE_TIME="1h"
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="pods"
-PROJECT_NAME=all 
+# PROJECT_NAME=all
+PROJECT_NAME=thunder
 READ_PERIODICALY=yes
 READOUT_MAX_TIME=30s
 

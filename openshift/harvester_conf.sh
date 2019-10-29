@@ -2,7 +2,7 @@
 ##################################
 ##############ENVIROMENT##########
 ##################################
-SINCE_TIME="15s"
+SINCE_TIME="1h"
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="logio_project"
 #What project connect to logio (all or one specific)
@@ -104,6 +104,14 @@ check_pod_not_null () {
 if [ "$PROJECT_NAME" == "all" ]
     then
         PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
+        printf "Script will apply for namespace \n$PROJECT_LIST"
+        sleep 2
+    else
+        PROJECT_LIST=$(echo ${PROJECT_NAME} | tr ' ' '\n' )
+        printf "Script will apply for namespace \n$PROJECT_LIST"
+        sleep 2
+    
+fi
         for value in ${PROJECT_LIST}; do
             constructor_harvester_conf_start ${value}
             if [[ ! $( oc get pods -n ${value} 2> /dev/null ) ]] 
@@ -116,33 +124,37 @@ if [ "$PROJECT_NAME" == "all" ]
                     check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
-            echo "PROJECT_NAME=all"
-            echo "Project name ${value}"
-            log.io-harvester &
-            sleep 5
-            rm -rf .log.io/harvester.conf
+            if [ "$( cat ../README.md | wc -l )" -gt "22" ]
+                then
+                    echo "Project name ${value}"
+                    log.io-harvester &
+                    sleep 5
+                    rm -rf .log.io/harvester.conf
+                else
+                    rm -rf .log.io/harvester.conf
+            fi
         done
-    else
-        constructor_harvester_conf_start ${PROJECT_NAME}
-        if [[ ! $( oc get pods -n ${PROJECT_NAME} 2> /dev/null ) ]] 
-            then
-                printf "\nThere are no pods in project ${PROJECT_NAME}"
-            else
-                printf "\nPods in project ${PROJECT_NAME}"
-                PODS_LIST=$( oc get pods -n ${PROJECT_NAME} | awk '{ print$1 }' | tail -n +2 )
-                echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${PROJECT_NAME}_pods.list
-                check_pod_not_null ${PROJECT_NAME} ${READOUT_PERIOD} ${SINCE_TIME}
-        fi
-        echo "PROJECT_NAME=no=$PROJECT_NAME"
-        echo "Project name ${value}"
-        constructor_harvester_conf_end ${LOGIO_SERVER}
-        log.io-harvester &
-        # log.io-harvester -D
-        # status=$?
-        # if [ $status -ne 0 ]; then
-        # echo "Failed to start my_first_process: $status"
-        # exit $status
-        # fi
-        sleep 5
-        rm .log.io/harvester.conf
-fi
+#     else
+#         constructor_harvester_conf_start ${PROJECT_NAME}
+#         if [[ ! $( oc get pods -n ${PROJECT_NAME} 2> /dev/null ) ]] 
+#             then
+#                 printf "\nThere are no pods in project ${PROJECT_NAME}"
+#             else
+#                 printf "\nPods in project ${PROJECT_NAME}"
+#                 PODS_LIST=$( oc get pods -n ${PROJECT_NAME} | awk '{ print$1 }' | tail -n +2 )
+#                 echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${PROJECT_NAME}_pods.list
+#                 check_pod_not_null ${PROJECT_NAME} ${READOUT_PERIOD} ${SINCE_TIME}
+#         fi
+#         echo "PROJECT_NAME=no=$PROJECT_NAME"
+#         echo "Project name ${value}"
+#         constructor_harvester_conf_end ${LOGIO_SERVER}
+#         log.io-harvester &
+#         # log.io-harvester -D
+#         # status=$?
+#         # if [ $status -ne 0 ]; then
+#         # echo "Failed to start my_first_process: $status"
+#         # exit $status
+#         # fi
+#         sleep 5
+#         rm .log.io/harvester.conf
+# fi

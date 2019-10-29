@@ -1,0 +1,5 @@
+#!/bin/bash
+echo grater
+if [ "$( cat ../README.md | wc -l )" -gt "22" ]; then
+    echo grater
+fi

@@ -46,6 +46,9 @@ objects:
           - env:
               - name: LOGIO_SERVER
                 value: 'yes'
+              - name: LOGIO_HARVESTER
+                # value: 'yes'
+                value: 'no'
               - name: OPENSHIFT_CLI
                 value: 'no'
             image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
@@ -275,6 +278,9 @@ objects:
       spec:
         containers:
           - env:
+              - name: LOGIO_SERVER
+                # value: 'yes'
+                value: 'no'
               - name: LOGIO_HARVESTER
                 value: 'yes'
               - name: OPENSHIFT_CLI

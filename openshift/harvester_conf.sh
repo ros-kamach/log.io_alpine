@@ -115,7 +115,7 @@ if [ "$PROJECT_NAME" == "all" ]
                     check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
-            log.io-harvester &
+            log.io-harvester
             sleep 5
             rm -rf ./harvester.conf
         done
@@ -131,7 +131,7 @@ if [ "$PROJECT_NAME" == "all" ]
                 check_pod_not_null ${PROJECT_NAME} ${READOUT_PERIOD} ${SINCE_TIME}
         fi
         constructor_harvester_conf_end ${LOGIO_SERVER}
-        log.io-harvester &
+        log.io-harvester
         sleep 5
         rm -rf ./harvester.conf
 fi

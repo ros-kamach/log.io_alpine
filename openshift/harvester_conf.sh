@@ -64,7 +64,7 @@ if [ -d "${DIR}" ]
         rm -rf "${DIR}" .log.io/harvester.conf
         mkdir -p "${DIR}"/logs "${DIR}"/pods
     else
-        mkdir -p "${DIR}"/logs ."${DIR}"/pods
+        mkdir -p "${DIR}"/logs "${DIR}"/pods
         rm -rf .log.io/harvester.conf
 fi
 ##################################

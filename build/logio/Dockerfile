@@ -16,7 +16,8 @@ RUN \
     mv /script.sh /home/logio/ && \
     chown logio:logio /home/logio/script.sh && \
     mkdir /home/logio/supervisord && \
-    chmod 777 /home/logio/script.sh && \
+    chmod 777 /home/logio/supervisord && \
+    chmod -R 777 /home/logio/script.sh && \
     bash /home/logio/script.sh
 
 EXPOSE 28778 28777

@@ -6,8 +6,8 @@ SINCE_TIME="1h"
 LOGIO_SERVER=logio-server.thunder.svc
 DIR="logio_project"
 #What project connect to logio (all or one specific)
-PROJECT_NAME=all
-# PROJECT_NAME=thunder
+# PROJECT_NAME=all
+PROJECT_NAME="thunder jenkins-ci"
 #It annables periodical session for readout logs
 # READ_PERIODICALY=yes
 READOUT_PERIOD=30s

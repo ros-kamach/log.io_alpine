@@ -15,6 +15,7 @@ RUN \
     { rm -rf /root/.gnupg || true; } && \
     mv /script.sh /home/logio/ && \
     chown logio:logio /home/logio/script.sh && \
+    mkdir /home/logio/supervisord && \
     chmod 777 /home/logio/script.sh && \
     bash /home/logio/script.sh
 

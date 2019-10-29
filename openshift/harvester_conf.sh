@@ -16,7 +16,7 @@ READOUT_PERIOD=30s
 ###Create Template for Harvester##
 ##################################
 constructor_harvester_conf_start () {
-cat <<EOF | tee -a ./.log.io/harvester.conf
+cat <<EOF | tee -a .log.io/harvester.conf
 exports.config = {
   nodeName: "${1}",
   logStreams: {
@@ -24,13 +24,13 @@ EOF
 }
 ##################################
 constructor_harvester_conf_stream_log () {
-cat <<EOF | tee -a ./.log.io/harvester.conf
+cat <<EOF | tee -a .log.io/harvester.conf
     "${1}": ["./logio_project/logs/${1}.log"],
 EOF
 }
 ##################################
 constructor_harvester_conf_end () {
-cat <<EOF | tee -a ./.log.io/harvester.conf
+cat <<EOF | tee -a .log.io/harvester.conf
 },
   server: {
     host: '${1}',
@@ -61,11 +61,11 @@ done &
 ##################################
 if [ -d "${DIR}" ]
     then
-        rm -rf "${DIR}" ./harvester.conf 
-        mkdir -p ./"${DIR}"/logs ."${DIR}"/pods
+        rm -rf "${DIR}" .log.io/harvester.conf
+        mkdir -p "${DIR}"/logs "${DIR}"/pods
     else
-        mkdir -p ./"${DIR}"/logs ."${DIR}"/pods
-        rm -rf ./harvester.conf   
+        mkdir -p "${DIR}"/logs ."${DIR}"/pods
+        rm -rf .log.io/harvester.conf
 fi
 ##################################
 ######Check pod output pods#######
@@ -116,7 +116,7 @@ if [ "$PROJECT_NAME" == "all" ]
             constructor_harvester_conf_end ${LOGIO_SERVER}
             log.io-harvester &
             sleep 5
-            rm -rf ./harvester.conf
+            rm -rf .log.io/harvester.conf
         done
     else
         constructor_harvester_conf_start ${PROJECT_NAME}

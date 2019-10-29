@@ -9,7 +9,7 @@ DIR="logio_project"
 PROJECT_NAME=all
 # PROJECT_NAME=thunder
 #It annables periodical session for readout logs
-READ_PERIODICALY=yes
+# READ_PERIODICALY=yes
 READOUT_PERIOD=30s
 
 ##################################

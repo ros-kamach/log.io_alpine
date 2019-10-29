@@ -28,7 +28,7 @@ if [[ "${LOGIO_HARVESTER}" == "yes" ]]
                 curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/openshift/harvester_conf.sh \
                 --output ./harvester_conf.sh
         fi
-    bash ./harvester_conf.sh
+    # bash ./harvester_conf.sh
 #   log.io-harvester 1>/dev/null
-    log.io-harvester
+    # log.io-harvester
 fi

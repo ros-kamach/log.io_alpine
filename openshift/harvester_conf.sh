@@ -137,6 +137,12 @@ if [ "$PROJECT_NAME" == "all" ]
         echo "Project name ${value}"
         constructor_harvester_conf_end ${LOGIO_SERVER}
         log.io-harvester &
+        # log.io-harvester -D
+status=$?
+if [ $status -ne 0 ]; then
+  echo "Failed to start my_first_process: $status"
+  exit $status
+fi
         sleep 5
         rm .log.io/harvester.conf
 fi

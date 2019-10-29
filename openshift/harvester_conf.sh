@@ -115,8 +115,8 @@ if [ "$PROJECT_NAME" == "all" ]
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
             log.io-harvester &
-            sleep 5
-            rm -rf .log.io/harvester.conf
+            # sleep 5
+            # rm -rf .log.io/harvester.conf
         done
     else
         constructor_harvester_conf_start ${PROJECT_NAME}

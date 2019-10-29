@@ -124,7 +124,7 @@ fi
                     check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER}
-            if [ "$( cat ../README.md | wc -l )" -gt "22" ]
+            if [ "$( cat ../README.md | wc -l )" -gt "9" ]
                 then
                     echo "Project name ${value}"
                     log.io-harvester &

@@ -1,7 +1,7 @@
 #!/bin/bash
 if [[ "${LOGIO_SERVER}" == "yes" ]]
     then
-        log.io-server
+        supervisord --nodaemon --configuration /etc/supervisor/conf.d/supervisor_server.conf
 fi
 
 if [[ "${OPENSHIFT_CLI}" == "yes" ]]
@@ -28,7 +28,8 @@ if [[ "${LOGIO_HARVESTER}" == "yes" ]]
                 curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/openshift/harvester_conf.sh \
                 --output ./harvester_conf.sh
         fi
+    supervisord --nodaemon --configuration /etc/supervisor/conf.d/supervisor_harvester.conf
     # bash ./harvester_conf.sh
 #   log.io-harvester 1>/dev/null
-    # log.io-harvester
+    # wait log.io-harvester
 fi

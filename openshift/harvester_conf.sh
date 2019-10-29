@@ -43,7 +43,7 @@ EOF
 #########Check PID Function#######
 ##################################
 check_pid_kill () {
-while true
+while sleep 60
 do
 files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
     if [[ $? != 0 ]] 
@@ -53,7 +53,6 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
         printf "\nNo PID founded for ${1}\n!!! Started\n"
         oc logs -f ${1} --since=${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &
     fi
-sleep 60
 done &
 }
 ##################################
@@ -86,7 +85,7 @@ check_pod_not_null () {
                 then
                     while true
                     do
-                        echo "READ_PERIODICALY=yes"
+                        echo "READ_PERIODICALY=yes=$READ_PERIODICALY"
                         echo "While do fot ${val} in project ${1}"
                         oc logs -f ${val} --since=${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                         sleep ${2}

@@ -30,5 +30,5 @@ if [[ "${LOGIO_HARVESTER}" == "yes" ]]
         fi
     bash ./harvester_conf.sh
 #   log.io-harvester 1>/dev/null
-#   log.io-harvester
+    log.io-harvester
 fi

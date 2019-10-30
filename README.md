@@ -1,5 +1,6 @@
 # log.io Real-time log monitoringin your browser
 
+![alt text](https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/logio.png)
 This repository contains components for running either an operational log.io server and harvester setup for your OpenShift cluster. 
 
 #### Befoure begin:
@@ -40,7 +41,6 @@ $ oc process -f logio_build.yaml -p DEPLOY_PROJECT_NAME=thunder | oc apply -f -
 ```
 $ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT_NAME=thunder | oc apply -f -
 ```
-![alt text](https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/logio.png)
 
 # How does it work?
 

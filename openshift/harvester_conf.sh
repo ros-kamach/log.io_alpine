@@ -2,15 +2,15 @@
 ##################################
 ##############ENVIROMENT##########
 ##################################
-SINCE_TIME="1h"
-LOGIO_SERVER=logio-server.thunder.svc
+# SINCE_TIME="1h"
+# LOGIO_SERVER=logio-server.thunder.svc
 DIR="logio_project"
 #What project connect to logio (all or one specific)
 # PROJECT_NAME=all
-PROJECT_NAME="thunder jenkins-ci"
+# PROJECT_NAME="thunder jenkins-ci"
 #It annables periodical session for readout logs
 # READ_PERIODICALY=yes
-READOUT_PERIOD=30s
+# READOUT_PERIOD=30s
 
 ##################################
 ###Create Template for Harvester##
@@ -101,7 +101,8 @@ check_pod_not_null () {
 ##################################
 ###Check Pod list by namespaces###
 ##################################
-if [ "$PROJECT_NAME" == "all" ]
+if [ -z "$PROJECT_NAME" ]
+# if [ "$PROJECT_NAME" == "all" ]
     then
         PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
         printf "Script will apply for namespace \n$PROJECT_LIST"
@@ -135,3 +136,15 @@ fi
                     rm -rf .log.io/harvester.conf
             fi
         done
+
+
+check_args () {
+case $4 in
+  (apply|delete) ;; # OK
+  (*) printf >&2 "Wrong arg.${2}${4}${3}. Allowed are ${1}apply${3} or ${1}delete${3} \n";
+      printf >&2 "!!! \n";
+      printf >&2 "syntax: bash <*.sh> <jenkins_project> <thunder_proje> <apply or delete> \n";
+      printf >&2 "## \n";
+      printf >&2 "example: bash project.sh jenkins-ci thunder apply \n";exit 1;;
+esac
+}

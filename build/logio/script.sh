@@ -29,7 +29,5 @@ if [[ "${LOGIO_HARVESTER}" == "yes" ]]
                 --output ./harvester_conf.sh
         fi
     supervisord --nodaemon --configuration /etc/supervisor/conf.d/supervisor_harvester.conf
-    # bash ./harvester_conf.sh
-#   log.io-harvester 1>/dev/null
-    # wait log.io-harvester
+    
 fi

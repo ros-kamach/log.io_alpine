@@ -253,17 +253,6 @@ objects:
         intervalSeconds: 1
         maxSurge: 25%
         maxUnavailable: 25%
-        # post:
-        #   execNewPod:
-        #     command:
-        #       - /bin/sh
-        #       - '-c'
-        #       - 'bash'
-        #       - mkdir /home/logio
-        #       - touch /home/logio/logs/error.log
-        #       - touch /home/logio/logs/access.log
-        #     containerName: logio-harvester
-        #   failurePolicy: Abort
         timeoutSeconds: 600
         updatePeriodSeconds: 1
       type: Rolling
@@ -279,13 +268,25 @@ objects:
         containers:
           - env:
               - name: LOGIO_SERVER
-                # value: 'yes'
                 value: 'no'
+              - name: LOGIO_SERVER
+                value: "logio-server.thunder.svc"
               - name: LOGIO_HARVESTER
                 value: 'yes'
               - name: OPENSHIFT_CLI
-                # value: 'yes'
                 value: 'no'
+              - name: SINCE_TIME
+                value: '1h'
+              - name: SINCE_TIME
+                value: '1h'
+              - name: PROJECT_NAME
+                value: "all"
+                # value: "thunder jenkins-ci"
+              - name: READOUT_PERIOD
+                value: "30s"
+              - name: READ_PERIODICALY
+                # value: "yes"
+                value: "no"
             image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
             imagePullPolicy: Always
             name: logio-harvester

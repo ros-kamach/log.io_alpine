@@ -29,17 +29,17 @@ This repository contains components for running either an operational log.io ser
 
 syntax:
 ```
-$ oc process -f logio_build.yaml -p DEPLOY_PROJECT_NAME=<project name for deploy> | oc <apply or delete> -f - 
+$ oc process -f logio_build.yaml -p BUILD_PROJECT=<project name for deploy> | oc <apply or delete> -f - 
 ```
 ```
-$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT_NAME=<project name for deploy> | oc <apply or delete> -f - 
+$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=<project name for deploy> -p BUILD_PROJECT=<project name for deploy> | oc <apply or delete> -f - 
 ```
 example:
 ```
-$ oc process -f logio_build.yaml -p DEPLOY_PROJECT_NAME=thunder | oc apply -f -
+$ oc process -f logio_build.yaml -p DEPLOY_PROJECT=thunder | oc apply -f -
 ```
 ```
-$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT_NAME=thunder | oc apply -f -
+$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=thunder -p BUILD_PROJECT=openshift | oc apply -f -
 ```
 
 # How does it work?

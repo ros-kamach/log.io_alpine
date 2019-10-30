@@ -13,7 +13,7 @@ objects:
   kind: ImageStream
   metadata:
     name: nodejs_alpine
-    namespace: ${JENKINS_PROJECT_NAME}
+    namespace: ${BUILD_PROJECT}
   spec:
     lookupPolicy:
       local: false
@@ -34,31 +34,31 @@ objects:
   kind: ImageStream
   metadata:
     name: logio_alpine
-    namespace: ${JENKINS_PROJECT_NAME}
+    namespace: ${BUILD_PROJECT}
   spec:
     lookupPolicy:
       local: false
   status:
-    dockerImageRepository: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
+    dockerImageRepository: docker-registry.default.svc/${BUILD_PROJECT}/logio_alpine
 
 #ImageStream for builded a
 - apiVersion: image.openshift.io/v1
   kind: ImageStream
   metadata:
     name: harvester_alpine
-    namespace: ${JENKINS_PROJECT_NAME}
+    namespace: ${BUILD_PROJECT}
   spec:
     lookupPolicy:
       local: false
   status:
-    dockerImageRepository: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
+    dockerImageRepository: docker-registry.default.svc/${BUILD_PROJECT}/harvester_alpine
 
 #Create build with docker strategy for Logio Server
 - apiVersion: build.openshift.io/v1
   kind: BuildConfig
   metadata:
     name: logio-alpine
-    namespace: ${JENKINS_PROJECT_NAME}
+    namespace: ${BUILD_PROJECT}
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
@@ -103,7 +103,7 @@ objects:
   kind: BuildConfig
   metadata:
     name: harvester-alpine
-    namespace: ${JENKINS_PROJECT_NAME}
+    namespace: ${BUILD_PROJECT}
   spec:
     failedBuildsHistoryLimit: 5
     nodeSelector: null
@@ -145,5 +145,5 @@ objects:
 parameters:
 - description: Project (Namespace)
   displayName: Project (Namespace)
-  name: JENKINS_PROJECT_NAME
-  value: "jenkins-ci"
+  name: BUILD_PROJECT
+  # value: "jenkins-ci"

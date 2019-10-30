@@ -45,7 +45,7 @@ objects:
         containers:
           - env:
               - name: LOGIO_WEB_OPENSHIFT
-                value: 'yes'
+                value: 'apply'
             image: docker-registry.default.svc/${BUILD_PROJECT}/logio_alpine
             imagePullPolicy: Always
             name: logio-server

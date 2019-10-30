@@ -1,5 +1,5 @@
 #!/bin/bash
-if [[ "${LOGIO_WEB_OPENSHIFT}" == "yes" ]]
+if [[ "${LOGIO_WEB_OPENSHIFT}" == "apply" ]]
     then
         supervisord --nodaemon --configuration /etc/supervisor/conf.d/supervisor_server.conf
 fi

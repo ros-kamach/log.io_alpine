@@ -7,15 +7,22 @@ This repository contains components for running either an operational log.io ser
 2) need project for deploying logio 
 3) build image runs in namespace "openshift", but you can specify by adding to deploy command parameter ```"-p BUILD_PROJECT=<project name> "```
 
+#### Build Proberty:
+| Property                | Valid options   | Description                        |
+|-------------------------|-----------------|------------------------------------|         
+| INSTALL_OPENSHIFT_CLI | "yes"    | Install Openshift CLI (harvester need it for recource  discovery) |
 
-| Property      | Valid options   | Description   |
-|------------------|--------------------|--------------------|
-| LOGIO_WEB_OPENSHIFT |     "apply"        |  |
-| HARVESTER_OPENSHIFT   | "apply"   |  |
-| INSTALL_OPENSHIFT_CLI   | "yes"    |  |
-| routingcafile    | routing CA file    |  |
-| routingcertfile  | routing CERT file  |  |
-| routingkeyfile   | routing Key file   |  |
+#### Deployment Proberty:
+| Property                | Valid options   | Description                        |
+|-------------------------|-----------------|------------------------------------|
+| LOGIO_WEB_OPENSHIFT     |     "apply"     | Runs pod with log.io server demon  |
+| HARVESTER_OPENSHIFT     |     "apply"     | Runs pod with harvester demon and resource discovery script  |
+| LOGIO_SERVER_URL        | "logio-server.${DEPLOY_PROJECT}.svc"  | Here you can specify where harvester will send logs |
+| SINCE_TIME              | '1h'   | Only return logs newer than a relative duration like 5s, 2m, or 3h. Defaults to all logs. Only one of since-time / since may be used.  |
+| GREP_POD_NAME           | < pattern >   | grep can be used to connect only pods with literal matched by pattern |
+| PROJECT_NAME            | "thunder jenkins-ci"  | write down what project to scan for pod logs ("<1> <'n'>..." Attancion projects must be seperated by "space") If blank than scan all projects |
+| READ_PERIODICALY           | "yes"   | open and close connection to pods by applying paraneter "--follow=false" and applying script to restart readout every pod periodicaly |
+| READOUT_PERIOD           | "30s"   | period of redout every pod, depends on READ_PERIODICALY parameter |
 
 # To implement, run:
 

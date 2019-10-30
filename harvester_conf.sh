@@ -90,7 +90,6 @@ check_pod_not_null () {
 ###Check Pod list by namespaces###
 ##################################
 if [ -z "$PROJECT_NAME" ]
-# if [ "$PROJECT_NAME" == "all" ]
     then
         PROJECT_LIST=$( oc get project | awk '{ print$1 }' | tail -n +2 )
         printf "Script will apply for namespace \n$PROJECT_LIST"
@@ -101,16 +100,26 @@ if [ -z "$PROJECT_NAME" ]
         sleep 2
     
 fi
+if [ ! -z "$SINCE_TIME" ]
+    then
+        SINCE_TIME_COMMAND="--since=$SINCE_TIME"
+fi
         for value in ${PROJECT_LIST}; do
             constructor_harvester_conf_start ${value}
-            if [[ ! $( oc get pods -n ${value} 2> /dev/null ) ]] 
+            if [ -z "$GREP_POD_NAME" ]
+                then
+                    POD_NAMES="oc get pods -n ${value} | grep $GREP_POD_NAME 2> /dev/null"
+                else
+                    POD_NAMES="oc get pods -n ${value} 2> /dev/null"
+            fi
+            if [[ ! $( ${POD_NAMES} ) ]] 
                 then
                     printf "\nThere are no pods in project ${value}"
                 else
                     printf "\nPods in project ${value}"
                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
                     echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${value}_pods.list
-                    check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
+                    check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME_COMMAND}
             fi
             constructor_harvester_conf_end ${LOGIO_SERVER_URL}
             sleep 5

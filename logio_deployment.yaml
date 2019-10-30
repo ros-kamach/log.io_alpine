@@ -17,7 +17,7 @@ objects:
     labels:
       app: logio-server
     name: logio-server
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
   spec:
     replicas: 1
     selector:
@@ -85,7 +85,7 @@ objects:
     labels:
       app: logio-server
     name: logio-server
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
   spec:
     ports:
       - name: 28777-tcp
@@ -112,7 +112,7 @@ objects:
     labels:
       app: logio-server
     name: logio
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
   spec:
     port:
       targetPort: 28778-tcp
@@ -127,14 +127,14 @@ objects:
   kind: ServiceAccount
   metadata:
     name: harvester
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
 
 # #Create Role
 # - apiVersion: rbac.authorization.k8s.io/v1beta1
 #   kind: Role
 #   metadata:
 #     name: harvester_view
-#     namespace: ${DEPLOY_PROJECT_NAME}
+#     namespace: ${DEPLOY_PROJECT}
 #   rules:
 #   # Just an example, feel free to change it
 #   - apiGroups: [""]
@@ -146,7 +146,7 @@ objects:
 #   kind: RoleBinding
 #   metadata:
 #     name: harvester_rbac
-#     namespace: ${DEPLOY_PROJECT_NAME}
+#     namespace: ${DEPLOY_PROJECT}
 #   subjects:
 #     - kind: ServiceAccount
 #       name: harvester
@@ -163,7 +163,7 @@ objects:
   subjects:
     - kind: ServiceAccount
       name: harvester
-      namespace: ${DEPLOY_PROJECT_NAME}
+      namespace: ${DEPLOY_PROJECT}
   roleRef:
     kind: ClusterRole
     name: cluster-reader
@@ -182,17 +182,17 @@ objects:
   subjects:
   - kind: ServiceAccount
     name: harvester
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
   - kind: ServiceAccount
     name: default
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
 
 #Allow containers to run as root
 - apiVersion: security.openshift.io/v1
   kind: SecurityContextConstraints
   metadata:
     name: harvester
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
   volumes:
   - configMap
   - downwardAPI
@@ -211,7 +211,7 @@ objects:
   supplementalGroups:
     type: RunAsAny
   users:
-  - system:serviceaccount:${DEPLOY_PROJECT_NAME}:harvester
+  - system:serviceaccount:${DEPLOY_PROJECT}:harvester
   allowHostDirVolumePlugin: false
   allowHostIPC: false
   allowHostNetwork: false
@@ -235,7 +235,7 @@ objects:
     labels:
       app: logio-harvester
     name: logio-harvester
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
   spec:
     replicas: 1
     selector:
@@ -264,7 +264,7 @@ objects:
           - env:
               #URL to Logio web server
               - name: LOGIO_SERVER_URL
-                value: "logio-server.thunder.svc"
+                value: "logio-server.${DEPLOY_PROJECT}.svc"
               #Apply script to generate resources and connect it to Logio Web Server   
               - name: HARVESTER_OPENSHIFT
                 value: 'apply'
@@ -273,6 +273,8 @@ objects:
                 value: '--since=1h'
               - name: PROJECT_NAME
                 # value: "thunder jenkins-ci"
+              - name: GREP_POD_NAME
+                value: "rve"
               - name: READOUT_PERIOD
                 value: "30s"
               - name: READ_PERIODICALY
@@ -317,7 +319,7 @@ objects:
     labels:
       app: logio-harvester
     name: logio-harvester
-    namespace: ${DEPLOY_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT}
   spec:
     ports:
       - name: 28777-tcp
@@ -340,5 +342,5 @@ parameters:
   value: "openshift"
 - description: Project (Namespace)
   displayName: Project (Namespace)
-  name: DEPLOY_PROJECT_NAME
+  name: DEPLOY_PROJECT
   # value: "thunder"

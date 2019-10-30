@@ -44,13 +44,8 @@ objects:
       spec:
         containers:
           - env:
-              - name: LOGIO_SERVER
+              - name: LOGIO_WEB_OPENSHIFT
                 value: 'yes'
-              - name: LOGIO_HARVESTER
-                # value: 'yes'
-                value: 'no'
-              - name: OPENSHIFT_CLI
-                value: 'no'
             image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
             imagePullPolicy: Always
             name: logio-server
@@ -267,26 +262,21 @@ objects:
       spec:
         containers:
           - env:
-              - name: LOGIO_SERVER
-                value: 'no'
-              - name: LOGIO_SERVER
+              #URL to Logio web server
+              - name: LOGIO_SERVER_URL
                 value: "logio-server.thunder.svc"
-              - name: LOGIO_HARVESTER
-                value: 'yes'
-              - name: OPENSHIFT_CLI
-                value: 'no'
+              #Apply script to generate resources and connect it to Logio Web Server   
+              - name: HARVESTER_OPENSHIFT
+                value: 'apply'
+              #Time 
               - name: SINCE_TIME
-                value: '1h'
-              - name: SINCE_TIME
-                value: '1h'
+                value: '--since=1h'
               - name: PROJECT_NAME
-                value: "all"
                 # value: "thunder jenkins-ci"
               - name: READOUT_PERIOD
                 value: "30s"
               - name: READ_PERIODICALY
                 # value: "yes"
-                value: "no"
             image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
             imagePullPolicy: Always
             name: logio-harvester

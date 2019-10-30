@@ -1,18 +1,5 @@
 #!/bin/bash
 ##################################
-##############ENVIROMENT##########
-##################################
-# SINCE_TIME="1h"
-# LOGIO_SERVER=logio-server.thunder.svc
-DIR="logio_project"
-#What project connect to logio (all or one specific)
-# PROJECT_NAME=all
-# PROJECT_NAME="thunder jenkins-ci"
-#It annables periodical session for readout logs
-# READ_PERIODICALY=yes
-# READOUT_PERIOD=30s
-
-##################################
 ###Create Template for Harvester##
 ##################################
 constructor_harvester_conf_start () {
@@ -51,13 +38,14 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
         echo "Command failed."
     elif [[ ! ${files} ]]; then
         printf "\nNo PID founded for ${1}\n!!! Started\n"
-        oc logs -f ${1} --since=${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &
+        oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &
     fi
 done &
 }
 ##################################
 ########Check Clear folder########
 ##################################
+DIR="logio_project"
 if [ -d "${DIR}" ]
     then
         rm -rf "${DIR}" .log.io/harvester.conf
@@ -87,12 +75,12 @@ check_pod_not_null () {
                     do
                         echo "READ_PERIODICALY=yes=$READ_PERIODICALY"
                         echo "While do fot ${val} in project ${1}"
-                        oc logs -f ${val} --since=${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
+                        oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                         sleep ${2}
                     done &
                 else
                     echo "READ_PERIODICALY=no=$READ_PERIODICALY"
-                    oc logs -f ${val} --since=${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
+                    oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                     check_pid_kill ${val} ${3} ${1}
               fi
       fi
@@ -124,7 +112,7 @@ fi
                     echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${value}_pods.list
                     check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME}
             fi
-            constructor_harvester_conf_end ${LOGIO_SERVER}
+            constructor_harvester_conf_end ${LOGIO_SERVER_URL}
             sleep 5
             if [ "$( cat .log.io/harvester.conf | wc -l )" -gt "9" ]
                 then
@@ -136,15 +124,3 @@ fi
                     rm -rf .log.io/harvester.conf
             fi
         done
-
-
-check_args () {
-case $4 in
-  (apply|delete) ;; # OK
-  (*) printf >&2 "Wrong arg.${2}${4}${3}. Allowed are ${1}apply${3} or ${1}delete${3} \n";
-      printf >&2 "!!! \n";
-      printf >&2 "syntax: bash <*.sh> <jenkins_project> <thunder_proje> <apply or delete> \n";
-      printf >&2 "## \n";
-      printf >&2 "example: bash project.sh jenkins-ci thunder apply \n";exit 1;;
-esac
-}

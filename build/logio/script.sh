@@ -1,10 +1,10 @@
 #!/bin/bash
-if [[ "${LOGIO_SERVER}" == "yes" ]]
+if [[ "${LOGIO_WEB_OPENSHIFT}" == "yes" ]]
     then
         supervisord --nodaemon --configuration /etc/supervisor/conf.d/supervisor_server.conf
 fi
 
-if [[ "${OPENSHIFT_CLI}" == "yes" ]]
+if [[ "${INSTALL_OPENSHIFT_CLI}" == "yes" ]]
     then
     apk --no-cache add ca-certificates
     curl -L https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub -o /etc/apk/keys/sgerrand.rsa.pub
@@ -16,16 +16,17 @@ if [[ "${OPENSHIFT_CLI}" == "yes" ]]
     mv /openshift-origin-client-tools-v3.9.0-191fece-linux-64bit/oc /usr/local/bin
     rm -rf /openshift-origin-client-tools-*
     apk del ca-certificates
+    OPENSHIFT_CLI=no
 fi
 
-if [[ "${LOGIO_HARVESTER}" == "yes" ]]
+if [[ "${HARVESTER_OPENSHIFT}" == "apply" ]]
     then
         FILE=./harvester_conf.sh
         if test -f "$FILE"
             then
                 echo "$FILE exist"
             else
-                curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/openshift/harvester_conf.sh \
+                curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/harvester_conf.sh \
                 --output ./harvester_conf.sh
         fi
     supervisord --nodaemon --configuration /etc/supervisor/conf.d/supervisor_harvester.conf

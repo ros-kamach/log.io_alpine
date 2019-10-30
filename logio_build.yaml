@@ -76,10 +76,10 @@ objects:
       type: Git
     strategy:
       dockerStrategy:
-        env:
-          - name: OPENSHIFT_CLI
-            # value: 'yes'
-            value: 'no'
+        # env:
+        #   - name: OPENSHIFT_CLI
+        #     # value: 'yes'
+        #     value: 'no'
         from:
           kind: ImageStreamTag
           name: nodejs_alpine:v6.9.5
@@ -122,9 +122,9 @@ objects:
     strategy:
       dockerStrategy:
         env:
-          - name: OPENSHIFT_CLI
+          #Apply script that install openshif cli
+          - name: INSTALL_OPENSHIFT_CLI
             value: 'yes'
-            # value: 'no'
         from:
           kind: ImageStreamTag
           name: nodejs_alpine:v6.9.5

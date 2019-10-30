@@ -268,13 +268,14 @@ objects:
               #Apply script to generate resources and connect it to Logio Web Server   
               - name: HARVESTER_OPENSHIFT
                 value: 'apply'
-              #Time 
-              - name: SINCE_TIME
-                value: '--since=1h'
+              - name: INSTALL_OPENSHIFT_CLI
+                value: "no"
+              # - name: SINCE_TIME
+              #   value: '1h'
               - name: PROJECT_NAME
                 # value: "thunder jenkins-ci"
               - name: GREP_POD_NAME
-                value: "rve"
+                # value: "rve"
               - name: READOUT_PERIOD
                 value: "30s"
               - name: READ_PERIODICALY

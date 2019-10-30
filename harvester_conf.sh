@@ -38,6 +38,7 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
         echo "Command failed."
     elif [[ ! ${files} ]]; then
         printf "\nNo PID founded for ${1}\n!!! Started\n"
+        echo "oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &"
         oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &
     fi
 done &
@@ -75,17 +76,29 @@ check_pod_not_null () {
                     do
                         echo "READ_PERIODICALY=yes=$READ_PERIODICALY"
                         echo "While do fot ${val} in project ${1}"
+                        echo "oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &"
                         oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                         sleep ${2}
                     done &
                 else
                     echo "READ_PERIODICALY=no=$READ_PERIODICALY"
+                    echo "oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &"
                     oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
                     check_pid_kill ${val} ${3} ${1}
               fi
       fi
   done
 }
+##################################
+########Show input param##########
+echo "LOGIO_SERVER_URL=$LOGIO_SERVER_URL"
+echo "HARVESTER_OPENSHIFT=$HARVESTER_OPENSHIFT"
+echo "INSTALL_OPENSHIFT_CLI=$INSTALL_OPENSHIFT_CLI"
+echo "SINCE_TIME=$SINCE_TIME"
+echo "PROJECT_NAME=$PROJECT_NAME"
+echo "GREP_POD_NAME=$GREP_POD_NAME"
+echo "READOUT_PERIOD=$READOUT_PERIOD"
+echo "READ_PERIODICALY=$READ_PERIODICALY"
 ##################################
 ###Check Pod list by namespaces###
 ##################################
@@ -98,19 +111,22 @@ if [ -z "$PROJECT_NAME" ]
         PROJECT_LIST=$(echo ${PROJECT_NAME} | tr ' ' '\n' )
         printf "Script will apply for namespace \n$PROJECT_LIST"
         sleep 2
-    
 fi
 if [ ! -z "$SINCE_TIME" ]
     then
+        echo "SINCE_TIME=$SINCE_TIME"
         SINCE_TIME_COMMAND="--since=$SINCE_TIME"
+        echo "SINCE_TIME_COMMAND=$SINCE_TIME_COMMAND"
 fi
         for value in ${PROJECT_LIST}; do
             constructor_harvester_conf_start ${value}
             if [ -z "$GREP_POD_NAME" ]
                 then
                     POD_NAMES="oc get pods -n ${value} | grep $GREP_POD_NAME 2> /dev/null"
+                    echo "POD_NAMES=$POD_NAMES"
                 else
                     POD_NAMES="oc get pods -n ${value} 2> /dev/null"
+                    echo "POD_NAMES=$POD_NAMES"
             fi
             if [[ ! $( ${POD_NAMES} ) ]] 
                 then

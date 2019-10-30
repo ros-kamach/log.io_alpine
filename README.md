@@ -36,7 +36,7 @@ $ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=<project name for deploy
 ```
 example:
 ```
-$ oc process -f logio_build.yaml -p DEPLOY_PROJECT=thunder | oc apply -f -
+$ oc process -f logio_build.yaml -p BUILD_PROJECT=openshift | oc apply -f -
 ```
 ```
 $ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=thunder -p BUILD_PROJECT=openshift | oc apply -f -

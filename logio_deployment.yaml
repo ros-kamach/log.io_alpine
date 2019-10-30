@@ -100,8 +100,6 @@ objects:
       deploymentconfig: logio-server
     sessionAffinity: None
     type: ClusterIP
-  # status:
-  #   loadBalancer: {}
 
 #Logio Server Route
 - apiVersion: route.openshift.io/v1
@@ -270,8 +268,8 @@ objects:
                 value: 'apply'
               - name: INSTALL_OPENSHIFT_CLI
                 value: "no"
-              # - name: SINCE_TIME
-              #   value: '1h'
+              - name: SINCE_TIME
+                value: '1h'
               - name: PROJECT_NAME
                 # value: "thunder jenkins-ci"
               - name: GREP_POD_NAME

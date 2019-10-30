@@ -1,9 +1,20 @@
 #!/bin/bash
 ##################################
+CONFIG_DIR="logio_scan_files"
+# LOGIO_SERVER_URL="logio-server.${DEPLOY_PROJECT}.svc"
+# HARVESTER_OPENSHIFT='apply'
+# INSTALL_OPENSHIFT_CLI="no"
+# SINCE_TIME='1h'
+# # PROJECT_NAME="thunder jenkins-ci"
+# # GREP_POD_NAME="rve"
+# READOUT_PERIOD="30s"
+# READ_PERIODICALY="yes"
+##################################
 ###Create Template for Harvester##
 ##################################
 constructor_harvester_conf_start () {
-cat <<EOF | tee -a .log.io/harvester.conf
+# cat <<EOF | tee -a .log.io/harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}harvester.conf
 exports.config = {
   nodeName: "${1}",
   logStreams: {
@@ -11,16 +22,18 @@ EOF
 }
 ##################################
 constructor_harvester_conf_stream_log () {
-cat <<EOF | tee -a .log.io/harvester.conf
-    "${1}": ["./logio_project/logs/${1}.log"],
+# cat <<EOF | tee -a .log.io/harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}harvester.conf
+    "${3}": ["./${2}/logs/${3}.log"],
 EOF
 }
 ##################################
 constructor_harvester_conf_end () {
-cat <<EOF | tee -a .log.io/harvester.conf
+# cat <<EOF | tee -a .log.io/harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}harvester.conf
 },
   server: {
-    host: '${1}',
+    host: '${3}',
     port: 28777
   }
 }
@@ -38,21 +51,20 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
         echo "Command failed."
     elif [[ ! ${files} ]]; then
         printf "\nNo PID founded for ${1}\n!!! Started\n"
-        echo "oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &"
-        oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./logio_project/logs/${1}.log >  /dev/null 2>&1 &
+        echo "oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./${4}/logs/${1}.log >  /dev/null 2>&1 &"
+        oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./${4}/logs/${1}.log >  /dev/null 2>&1 &
     fi
 done &
 }
 ##################################
 ########Check Clear folder########
 ##################################
-DIR="logio_project"
-if [ -d "${DIR}" ]
+if [ -d "${CONFIG_DIR}" ]
     then
-        rm -rf "${DIR}" .log.io/harvester.conf
-        mkdir -p "${DIR}"/logs "${DIR}"/pods
+        rm -rf ${CONFIG_DIR} .log.io/harvester.conf
+        mkdir -p ${CONFIG_DIR}/logs ${CONFIG_DIR}/pods ${CONFIG_DIR}/conf
     else
-        mkdir -p "${DIR}"/logs "${DIR}"/pods
+        mkdir -p ${CONFIG_DIR}/logs ${CONFIG_DIR}/pods ${CONFIG_DIR}/conf
         rm -rf .log.io/harvester.conf
 fi
 ##################################
@@ -60,8 +72,9 @@ fi
 #########And Implement############
 ##################################
 check_pod_not_null () {
-  for val in $( cat ./logio_project/pods/${1}_pods.list ); do
+  for val in $( cat ./${2}/pods/${1}_pods.list ); do
       output=$(oc logs -f ${val} --follow=false --tail=-1 -n ${1})
+      echo "123 ${output}"
       if [[ $? != 0 ]] 
           then
               echo "Pod ${val} not runned"
@@ -69,22 +82,20 @@ check_pod_not_null () {
               echo "Pod ${val} output NULL"
           else
               echo "Pod ${val} connected"
-              constructor_harvester_conf_stream_log ${val}
-              if [ "${READ_PERIODICALY}" == "yes" ]
+              constructor_harvester_conf_stream_log ${1} ${2} ${val} 
+              if [ "${4}" == "yes" ]
                 then
-                    while true
+                    echo $4
+                    while sleep ${4}
                     do
-                        echo "READ_PERIODICALY=yes=$READ_PERIODICALY"
                         echo "While do fot ${val} in project ${1}"
-                        echo "oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &"
-                        oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
-                        sleep ${2}
+                        echo "oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
+                        oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
                     done &
                 else
-                    echo "READ_PERIODICALY=no=$READ_PERIODICALY"
-                    echo "oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &"
-                    oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./logio_project/logs/${val}.log >  /dev/null 2>&1 &
-                    check_pid_kill ${val} ${3} ${1}
+                    echo "oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
+                    oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
+                    check_pid_kill ${val} ${3} ${1} ${2}
               fi
       fi
   done
@@ -119,33 +130,34 @@ if [ ! -z "$SINCE_TIME" ]
         echo "SINCE_TIME_COMMAND=$SINCE_TIME_COMMAND"
 fi
         for value in ${PROJECT_LIST}; do
-            constructor_harvester_conf_start ${value}
+            constructor_harvester_conf_start ${value} ${CONFIG_DIR}
             if [ -z "$GREP_POD_NAME" ]
                 then
-                    POD_NAMES="oc get pods -n ${value} | grep $GREP_POD_NAME 2> /dev/null"
-                    echo "POD_NAMES=$POD_NAMES"
+                    POD_NAMES="$( oc get pods -n ${value} 2> /dev/null )"
                 else
-                    POD_NAMES="oc get pods -n ${value} 2> /dev/null"
-                    echo "POD_NAMES=$POD_NAMES"
+                    POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAME 2> /dev/null )"
             fi
-            if [[ ! $( ${POD_NAMES} ) ]] 
+            if [[ ! "${POD_NAMES}" ]] 
                 then
                     printf "\nThere are no pods in project ${value}"
                 else
                     printf "\nPods in project ${value}"
                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
-                    echo ${PODS_LIST} | tr ' ' '\n' > ./logio_project/pods/${value}_pods.list
-                    check_pod_not_null ${value} ${READOUT_PERIOD} ${SINCE_TIME_COMMAND}
+                    echo " Dirr "${CONFIG_DIR}" "
+                    echo ${PODS_LIST} | tr ' ' '\n' > ./"${CONFIG_DIR}"/pods/${value}_pods.list
+                    check_pod_not_null ${value} ${CONFIG_DIR} ${SINCE_TIME_COMMAND} ${READ_PERIODICALY} ${READOUT_PERIOD}
+
             fi
-            constructor_harvester_conf_end ${LOGIO_SERVER_URL}
-            sleep 5
-            if [ "$( cat .log.io/harvester.conf | wc -l )" -gt "9" ]
+            constructor_harvester_conf_end ${value} ${CONFIG_DIR} ${LOGIO_SERVER_URL}
+            if [ "$( cat ./${CONFIG_DIR}/conf/${value}harvester.conf | wc -l )" -le "9" ]
                 then
-                    echo "Project name ${value}"
-                    log.io-harvester &
-                    sleep 5
-                    rm -rf .log.io/harvester.conf
+                    echo "There are no resource for that paramethers in ${value}"
+                    rm -rf ./${CONFIG_DIR}/conf/${value}harvester.conf
                 else
+                    echo "Connecting recources to log.io server ${value}"
+                    cp ./${CONFIG_DIR}/${value}harvester.conf .log.io/harvester.conf
+                    log.io-harvester &
+                    sleep 2
                     rm -rf .log.io/harvester.conf
             fi
         done

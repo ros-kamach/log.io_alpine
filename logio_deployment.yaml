@@ -17,7 +17,7 @@ objects:
     labels:
       app: logio-server
     name: logio-server
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
   spec:
     replicas: 1
     selector:
@@ -46,7 +46,7 @@ objects:
           - env:
               - name: LOGIO_WEB_OPENSHIFT
                 value: 'yes'
-            image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
+            image: docker-registry.default.svc/${BUILD_PROJECT}/logio_alpine
             imagePullPolicy: Always
             name: logio-server
             ports:
@@ -72,8 +72,8 @@ objects:
           from:
             kind: ImageStreamTag
             name: 'logio_alpine:latest'
-            namespace: ${JENKINS_PROJECT_NAME}
-          lastTriggeredImage: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/logio_alpine
+            namespace: ${BUILD_PROJECT}
+          lastTriggeredImage: docker-registry.default.svc/${BUILD_PROJECT}/logio_alpine
         type: ImageChange
 
 #Logio Server service
@@ -85,7 +85,7 @@ objects:
     labels:
       app: logio-server
     name: logio-server
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
   spec:
     ports:
       - name: 28777-tcp
@@ -112,7 +112,7 @@ objects:
     labels:
       app: logio-server
     name: logio
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
   spec:
     port:
       targetPort: 28778-tcp
@@ -127,14 +127,14 @@ objects:
   kind: ServiceAccount
   metadata:
     name: harvester
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
 
 # #Create Role
 # - apiVersion: rbac.authorization.k8s.io/v1beta1
 #   kind: Role
 #   metadata:
 #     name: harvester_view
-#     namespace: ${THUNDER_PROJECT_NAME}
+#     namespace: ${DEPLOY_PROJECT_NAME}
 #   rules:
 #   # Just an example, feel free to change it
 #   - apiGroups: [""]
@@ -146,7 +146,7 @@ objects:
 #   kind: RoleBinding
 #   metadata:
 #     name: harvester_rbac
-#     namespace: ${THUNDER_PROJECT_NAME}
+#     namespace: ${DEPLOY_PROJECT_NAME}
 #   subjects:
 #     - kind: ServiceAccount
 #       name: harvester
@@ -163,7 +163,7 @@ objects:
   subjects:
     - kind: ServiceAccount
       name: harvester
-      namespace: ${THUNDER_PROJECT_NAME}
+      namespace: ${DEPLOY_PROJECT_NAME}
   roleRef:
     kind: ClusterRole
     name: cluster-reader
@@ -174,7 +174,7 @@ objects:
   kind: RoleBinding
   metadata:
     name: system:image-puller
-    namespace: ${JENKINS_PROJECT_NAME}
+    namespace: ${BUILD_PROJECT}
   roleRef:
     apiGroup: rbac.authorization.k8s.io
     kind: ClusterRole
@@ -182,17 +182,17 @@ objects:
   subjects:
   - kind: ServiceAccount
     name: harvester
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
   - kind: ServiceAccount
     name: default
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
 
 #Allow containers to run as root
 - apiVersion: security.openshift.io/v1
   kind: SecurityContextConstraints
   metadata:
     name: harvester
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
   volumes:
   - configMap
   - downwardAPI
@@ -211,7 +211,7 @@ objects:
   supplementalGroups:
     type: RunAsAny
   users:
-  - system:serviceaccount:${THUNDER_PROJECT_NAME}:harvester
+  - system:serviceaccount:${DEPLOY_PROJECT_NAME}:harvester
   allowHostDirVolumePlugin: false
   allowHostIPC: false
   allowHostNetwork: false
@@ -235,7 +235,7 @@ objects:
     labels:
       app: logio-harvester
     name: logio-harvester
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
   spec:
     replicas: 1
     selector:
@@ -277,7 +277,7 @@ objects:
                 value: "30s"
               - name: READ_PERIODICALY
                 # value: "yes"
-            image: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
+            image: docker-registry.default.svc/${BUILD_PROJECT}/harvester_alpine
             imagePullPolicy: Always
             name: logio-harvester
             ports:
@@ -304,8 +304,8 @@ objects:
           from:
             kind: ImageStreamTag
             name: 'harvester_alpine:latest'
-            namespace: ${JENKINS_PROJECT_NAME}
-          lastTriggeredImage: docker-registry.default.svc/${JENKINS_PROJECT_NAME}/harvester_alpine
+            namespace: ${BUILD_PROJECT}
+          lastTriggeredImage: docker-registry.default.svc/${BUILD_PROJECT}/harvester_alpine
         type: ImageChange
 
 #Harvester service
@@ -317,7 +317,7 @@ objects:
     labels:
       app: logio-harvester
     name: logio-harvester
-    namespace: ${THUNDER_PROJECT_NAME}
+    namespace: ${DEPLOY_PROJECT_NAME}
   spec:
     ports:
       - name: 28777-tcp
@@ -332,15 +332,13 @@ objects:
       deploymentconfig: logio-harvester
     sessionAffinity: None
     type: ClusterIP
-  # status:
-  #   loadBalancer: {}
 
 parameters:
 - description: Project (Namespace)
   displayName: Project (Namespace)
-  name: JENKINS_PROJECT_NAME
-  value: "jenkins-ci"
+  name: BUILD_PROJECT
+  value: "openshift"
 - description: Project (Namespace)
   displayName: Project (Namespace)
-  name: THUNDER_PROJECT_NAME
-  value: "thunder"
+  name: DEPLOY_PROJECT_NAME
+  # value: "thunder"

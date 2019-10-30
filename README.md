@@ -9,10 +9,16 @@ To deploy, run:
 
 syntax:
 ```
-$ bash prometheus-grafana.sh <project name for monitoring> <apply or delete> 
+$ oc process -f logio_build.yaml -p DEPLOY_PROJECT_NAME=<project name for deploy> | oc <apply or delete> -f - 
+```
+```
+$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT_NAME=<project name for deploy> | oc <apply or delete> -f - 
 ```
 example:
 ```
-$ bash prometheus-grafana.sh openshift-metrics apply
+$ oc process -f logio_build.yaml -p DEPLOY_PROJECT_NAME=thunder | oc apply -f -
+```
+```
+$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT_NAME=thunder | oc apply -f -
 ```
 ![alt text](http://logio.org/logio_diagram1.png)

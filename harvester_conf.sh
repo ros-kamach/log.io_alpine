@@ -5,8 +5,8 @@ CONFIG_DIR="logio_scan_files"
 # INSTALL_OPENSHIFT_CLI="no"
 # SINCE_TIME='1h'
 # # PROJECT_NAME="thunder jenkins-ci"
-# GREP_POD_NAMES=mysql
-# SKIP_POD_NAMES=mysql
+# GREP_POD_NAMES=logio
+# SKIP_POD_NAMES=logio
 # READOUT_LOG_PERIOD="30s"
 # READ_PERIODICALY="yes"
 ##################################
@@ -14,7 +14,7 @@ CONFIG_DIR="logio_scan_files"
 ##################################
 constructor_harvester_conf_start () {
 # cat <<EOF | tee -a .log.io/harvester.conf
-cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf > /dev/null
 exports.config = {
   nodeName: "${1}",
   logStreams: {
@@ -23,14 +23,14 @@ EOF
 ##################################
 constructor_harvester_conf_stream_log () {
 # cat <<EOF | tee -a .log.io/harvester.conf
-cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf > /dev/null
     "${3}": ["./${2}/logs/${3}.log"],
 EOF
 }
 ##################################
 constructor_harvester_conf_end () {
 # cat <<EOF | tee -a .log.io/harvester.conf
-cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf > /dev/null
 },
   server: {
     host: '${3}',
@@ -152,51 +152,69 @@ if [ ! -z "$SINCE_TIME" ]
 fi
         for value in ${PROJECT_LIST}; do
             constructor_harvester_conf_start ${value} ${CONFIG_DIR}
+            echo "1 GREP_POD_NAMES=$GREP_POD_NAMES"
             if [ -z "$GREP_POD_NAMES" ]
                 then
                     if [ -z "$SKIP_POD_NAMES" ]
                         then
+                            echo "2 oc get pods -n ${value} 2> /dev/null"
                             POD_NAMES="$( oc get pods -n ${value} 2> /dev/null )"
                         else
+                            echo "3 oc get pods -n ${value} | grep -v $SKIP_POD_NAMES 2> /dev/null "
                             echo "Filter Pods by Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
                             POD_NAMES="$( oc get pods -n ${value} | grep -v $SKIP_POD_NAMES 2> /dev/null )"
                     fi
                 else
+                    echo "4 SKIP_POD_NAMES=$SKIP_POD_NAMES"
                     if [ -z "$SKIP_POD_NAMES" ]
                         then
+                            echo "5 oc get pods -n ${value} | grep $GREP_POD_NAMES 2> /dev/null"
                             echo "Filter Pods by Grep command grep $GREP_POD_NAMES in namespace ${value}"
                             POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES 2> /dev/null )"
                         else
+                            echo "6 oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null"
                             echo "Filter Pods by Grep command grep $GREP_POD_NAMES and Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
                             POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null )"
-                    fi  
+                    fi
             fi
+            echo podnames
+            echo "7 POD_NAMES=${POD_NAMES}"
             if [[ ! "${POD_NAMES}" ]] 
                 then
+                    echo 8
                     printf "\nThere are no pods in project ${value}"
                 else
+                    echo 9
                     printf "\nPods in project ${value}"
+                    echo "10 GREP_POD_NAMES=${GREP_POD_NAMES}"
                     if [ -z "$GREP_POD_NAMES" ]
                         then
+                            echo "11 SKIP_POD_NAMES=$SKIP_POD_NAMES"
                             if [ -z "$SKIP_POD_NAMES" ]
                                 then
+                                    echo "12 oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2"
                                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
                                 else
+                                    echo "13 oc get pods -n ${value} | grep -v $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2"
                                     echo "Filter Pods by Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
-                                    PODS_LIST="$( oc get pods -n ${value} | grep $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )"
+                                    PODS_LIST="$( oc get pods -n ${value} | grep -v $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )"
                             fi
                         else
+                            echo "14 SKIP_POD_NAMES=$SKIP_POD_NAMES"
                             if [ -z "$SKIP_POD_NAMES" ]
                                 then
+                                    echo "15 oc get pods -n ${value} | grep $GREP_POD_NAMES | awk '{ print$1 }'"
                                     echo "Filter Pods by Grep command grep $GREP_POD_NAMES in namespace ${value}"
-                                    PODS_LIST="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )"
+                                    PODS_LIST="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | awk '{ print$1 }' )"
                                 else
+                                    echo "16 oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null"
                                     echo "Filter Pods by Grep command grep $GREP_POD_NAMES and Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
-                                    POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep $SKIP_POD_NAMES 2> /dev/null )"
-                                    PODS_LIST=$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep  $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )
+                                    PODS_LIST=$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES | awk '{ print$1 }' )
                             fi
                     fi
                     echo ${PODS_LIST} | tr ' ' '\n' > ./"${CONFIG_DIR}"/pods/${value}_pods.list
+                    cat ./"${CONFIG_DIR}"/pods/${value}_pods.list
+                    echo "#######################################"
                     check_pod_not_null ${value} ${CONFIG_DIR} ${SINCE_TIME_COMMAND} ${READ_PERIODICALY} ${READOUT_LOG_PERIOD}
 
             fi

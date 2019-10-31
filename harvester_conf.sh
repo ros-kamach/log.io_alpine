@@ -2,12 +2,11 @@
 ##################################
 CONFIG_DIR="logio_scan_files"
 # LOGIO_SERVER_URL="logio-server.${DEPLOY_PROJECT}.svc"
-# HARVESTER_OPENSHIFT='apply'
 # INSTALL_OPENSHIFT_CLI="no"
 # SINCE_TIME='1h'
 # # PROJECT_NAME="thunder jenkins-ci"
-# # GREP_POD_NAME="rve"
-# READOUT_PERIOD="30s"
+# GREP_POD_NAME=mysql
+# READOUT_LOG_PERIOD="30s"
 # READ_PERIODICALY="yes"
 ##################################
 ###Create Template for Harvester##
@@ -57,17 +56,6 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
 done &
 }
 ##################################
-########Check Clear folder########
-##################################
-if [ -d "${CONFIG_DIR}" ]
-    then
-        rm -rf ${CONFIG_DIR} .log.io/harvester.conf
-        mkdir -p ${CONFIG_DIR}/logs ${CONFIG_DIR}/pods ${CONFIG_DIR}/conf
-    else
-        mkdir -p ${CONFIG_DIR}/logs ${CONFIG_DIR}/pods ${CONFIG_DIR}/conf
-        rm -rf .log.io/harvester.conf
-fi
-##################################
 ######Check pod output pods#######
 #########And Implement############
 ##################################
@@ -85,13 +73,20 @@ check_pod_not_null () {
               constructor_harvester_conf_stream_log ${1} ${2} ${val} 
               if [ "${4}" == "yes" ]
                 then
-                    echo $4
-                    while sleep ${4}
-                    do
-                        echo "While do fot ${val} in project ${1}"
-                        echo "oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
-                        oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
-                    done &
+                    if [ -z "$5" ]
+                        then
+                            echo "[ERROR] Missing Readout log period environment variable. Will connect as streem."
+                            echo "oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
+                            oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
+                            check_pid_kill ${val} ${3} ${1} ${2}
+                        else
+                            while sleep ${5}
+                            do
+                                echo "While do fot ${val} in project ${1}"
+                                echo "oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
+                                oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
+                            done &
+                    fi
                 else
                     echo "oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
                     oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
@@ -102,14 +97,38 @@ check_pod_not_null () {
 }
 ##################################
 ########Show input param##########
+if [ -z "$CONFIG_DIR" ]
+    then
+        echo "[ERROR] Missing config dir environment variable. Aborting."
+        exit 1
+fi
+if [ -z "$LOGIO_SERVER_URL" ]
+    then
+        echo "[ERROR] Missing Log.io server URL environment variable. Aborting."
+        exit 1
+fi
+if [ -z "$LOGIO_SERVER_URL" ]
+    then
+        echo "[ERROR] Missing Log.io server URL environment variable. Aborting."
+        exit 1
+fi
 echo "LOGIO_SERVER_URL=$LOGIO_SERVER_URL"
-echo "HARVESTER_OPENSHIFT=$HARVESTER_OPENSHIFT"
-echo "INSTALL_OPENSHIFT_CLI=$INSTALL_OPENSHIFT_CLI"
 echo "SINCE_TIME=$SINCE_TIME"
 echo "PROJECT_NAME=$PROJECT_NAME"
 echo "GREP_POD_NAME=$GREP_POD_NAME"
-echo "READOUT_PERIOD=$READOUT_PERIOD"
+echo "READOUT_LOG_PERIOD=$READOUT_LOG_PERIOD"
 echo "READ_PERIODICALY=$READ_PERIODICALY"
+##################################
+########Check Clear folder########
+##################################
+if [ -d "${CONFIG_DIR}" ]
+    then
+        rm -rf ${CONFIG_DIR} .log.io/harvester.conf
+        mkdir -p ${CONFIG_DIR}/logs ${CONFIG_DIR}/pods ${CONFIG_DIR}/conf
+    else
+        mkdir -p ${CONFIG_DIR}/logs ${CONFIG_DIR}/pods ${CONFIG_DIR}/conf
+        rm -rf .log.io/harvester.conf
+fi
 ##################################
 ###Check Pod list by namespaces###
 ##################################
@@ -135,6 +154,7 @@ fi
                 then
                     POD_NAMES="$( oc get pods -n ${value} 2> /dev/null )"
                 else
+                    echo "Filter Pods by Grep command grep $GREP_POD_NAME in namespace ${value}"
                     POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAME 2> /dev/null )"
             fi
             if [[ ! "${POD_NAMES}" ]] 
@@ -145,7 +165,7 @@ fi
                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
                     echo " Dirr "${CONFIG_DIR}" "
                     echo ${PODS_LIST} | tr ' ' '\n' > ./"${CONFIG_DIR}"/pods/${value}_pods.list
-                    check_pod_not_null ${value} ${CONFIG_DIR} ${SINCE_TIME_COMMAND} ${READ_PERIODICALY} ${READOUT_PERIOD}
+                    check_pod_not_null ${value} ${CONFIG_DIR} ${SINCE_TIME_COMMAND} ${READ_PERIODICALY} ${READOUT_LOG_PERIOD}
 
             fi
             constructor_harvester_conf_end ${value} ${CONFIG_DIR} ${LOGIO_SERVER_URL}

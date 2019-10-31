@@ -62,7 +62,7 @@ done &
 check_pod_not_null () {
   for val in $( cat ./${2}/pods/${1}_pods.list ); do
       output=$(oc logs -f ${val} --follow=false --tail=-1 -n ${1})
-      echo "123 ${output}"
+    #   echo "123 ${output}"
       if [[ $? != 0 ]] 
           then
               echo "Pod ${val} not runned"

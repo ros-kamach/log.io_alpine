@@ -1,6 +1,6 @@
 # log.io Real-time log monitoringin your browser
 
-![alt text](https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/logio.png)
+![alt text](https://raw.githubusercontent.com/ros-kamach/log.io_openshift/master/logio.png)
 This repository contains components for running either an operational log.io server and harvester setup for your OpenShift cluster. 
 
 #### Befoure begin:

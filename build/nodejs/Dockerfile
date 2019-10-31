@@ -7,7 +7,7 @@ RUN \
     #Install needed packages
     apk add --no-cache curl make gcc g++ python linux-headers binutils-gold gnupg libstdc++ && \
     #Install nodejs
-    curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/build/nodejs/node-${VERSION}.tar.xz \
+    curl https://raw.githubusercontent.com/ros-kamach/log.io_openshift/master/build/nodejs/node-${VERSION}.tar.xz \
     --output node-${VERSION}.tar.xz && \
     tar -xf node-${VERSION}.tar.xz && \
     cd /node-${VERSION} && \
@@ -16,7 +16,7 @@ RUN \
     make install && \
     #Install yarn 
     cd / && \
-    curl https://raw.githubusercontent.com/ros-kamach/log.io_alpine/master/build/nodejs/yarn-${YARN_VERSION}.tar.gz \
+    curl https://raw.githubusercontent.com/ros-kamach/log.io_openshift/master/build/nodejs/yarn-${YARN_VERSION}.tar.gz \
     --output yarn-${YARN_VERSION}.tar.gz && \
     mkdir /usr/local/share/yarn && \
     tar -xf yarn-${YARN_VERSION}.tar.gz -C /usr/local/share/yarn --strip 1 && \

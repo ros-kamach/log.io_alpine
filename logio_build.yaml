@@ -72,7 +72,7 @@ objects:
     source:
       contextDir: /build/logio
       git:
-        uri: https://github.com/ros-kamach/log.io_alpine
+        uri: https://github.com/ros-kamach/log.io_openshift
       type: Git
     strategy:
       dockerStrategy:
@@ -117,7 +117,7 @@ objects:
     source:
       contextDir: /build/logio
       git:
-        uri: https://github.com/ros-kamach/log.io_alpine
+        uri: https://github.com/ros-kamach/log.io_openshift
       type: Git
     strategy:
       dockerStrategy:

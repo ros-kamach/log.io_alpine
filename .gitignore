@@ -17,4 +17,4 @@ database/
 *.zip
 Untitled-12
 *.tar.gz
-varnish.yaml
+.varnish.yaml

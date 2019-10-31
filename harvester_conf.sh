@@ -159,7 +159,7 @@ fi
                             POD_NAMES="$( oc get pods -n ${value} 2> /dev/null )"
                         else
                             echo "Filter Pods by Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
-                            POD_NAMES="$( oc get pods -n ${value} | grep $SKIP_POD_NAMES 2> /dev/null )"
+                            POD_NAMES="$( oc get pods -n ${value} | grep -v $SKIP_POD_NAMES 2> /dev/null )"
                     fi
                 else
                     if [ -z "$SKIP_POD_NAMES" ]
@@ -168,7 +168,7 @@ fi
                             POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES 2> /dev/null )"
                         else
                             echo "Filter Pods by Grep command grep $GREP_POD_NAMES and Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
-                            POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep $SKIP_POD_NAMES 2> /dev/null )"
+                            POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null )"
                     fi  
             fi
             if [[ ! "${POD_NAMES}" ]] 
@@ -176,7 +176,26 @@ fi
                     printf "\nThere are no pods in project ${value}"
                 else
                     printf "\nPods in project ${value}"
-                    PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
+                    if [ -z "$GREP_POD_NAMES" ]
+                        then
+                            if [ -z "$SKIP_POD_NAMES" ]
+                                then
+                                    PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
+                                else
+                                    echo "Filter Pods by Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
+                                    PODS_LIST="$( oc get pods -n ${value} | grep $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )"
+                            fi
+                        else
+                            if [ -z "$SKIP_POD_NAMES" ]
+                                then
+                                    echo "Filter Pods by Grep command grep $GREP_POD_NAMES in namespace ${value}"
+                                    PODS_LIST="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )"
+                                else
+                                    echo "Filter Pods by Grep command grep $GREP_POD_NAMES and Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
+                                    POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep $SKIP_POD_NAMES 2> /dev/null )"
+                                    PODS_LIST=$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep  $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )
+                            fi
+                    fi
                     echo ${PODS_LIST} | tr ' ' '\n' > ./"${CONFIG_DIR}"/pods/${value}_pods.list
                     check_pod_not_null ${value} ${CONFIG_DIR} ${SINCE_TIME_COMMAND} ${READ_PERIODICALY} ${READOUT_LOG_PERIOD}
 

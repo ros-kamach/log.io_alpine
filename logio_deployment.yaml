@@ -272,10 +272,12 @@ objects:
                 value: '1h'
               - name: PROJECT_NAME
                 # value: "thunder jenkins-ci"
-              - name: GREP_POD_NAME
+              - name: GREP_POD_NAMES
                 # value: "rve"
+              - name: SKIP_POD_NAMES
+                # value: "mysql"
               - name: READOUT_PERIOD
-                value: "30s"
+                # value: "30s"
               - name: READ_PERIODICALY
                 # value: "yes"
             image: docker-registry.default.svc/${BUILD_PROJECT}/harvester_alpine

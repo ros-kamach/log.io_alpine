@@ -5,7 +5,8 @@ CONFIG_DIR="logio_scan_files"
 # INSTALL_OPENSHIFT_CLI="no"
 # SINCE_TIME='1h'
 # # PROJECT_NAME="thunder jenkins-ci"
-# GREP_POD_NAME=mysql
+# GREP_POD_NAMES=mysql
+# SKIP_POD_NAMES=mysql
 # READOUT_LOG_PERIOD="30s"
 # READ_PERIODICALY="yes"
 ##################################
@@ -97,6 +98,13 @@ check_pod_not_null () {
 }
 ##################################
 ########Show input param##########
+echo "LOGIO_SERVER_URL=$LOGIO_SERVER_URL"
+echo "SINCE_TIME=$SINCE_TIME"
+echo "PROJECT_NAME=$PROJECT_NAME"
+echo "GREP_POD_NAMES=$GREP_POD_NAMES"
+echo "SKIP_POD_NAMES=$SKIP_POD_NAMES"
+echo "READOUT_LOG_PERIOD=$READOUT_LOG_PERIOD"
+echo "READ_PERIODICALY=$READ_PERIODICALY"
 if [ -z "$CONFIG_DIR" ]
     then
         echo "[ERROR] Missing config dir environment variable. Aborting."
@@ -112,12 +120,6 @@ if [ -z "$LOGIO_SERVER_URL" ]
         echo "[ERROR] Missing Log.io server URL environment variable. Aborting."
         exit 1
 fi
-echo "LOGIO_SERVER_URL=$LOGIO_SERVER_URL"
-echo "SINCE_TIME=$SINCE_TIME"
-echo "PROJECT_NAME=$PROJECT_NAME"
-echo "GREP_POD_NAME=$GREP_POD_NAME"
-echo "READOUT_LOG_PERIOD=$READOUT_LOG_PERIOD"
-echo "READ_PERIODICALY=$READ_PERIODICALY"
 ##################################
 ########Check Clear folder########
 ##################################
@@ -150,12 +152,24 @@ if [ ! -z "$SINCE_TIME" ]
 fi
         for value in ${PROJECT_LIST}; do
             constructor_harvester_conf_start ${value} ${CONFIG_DIR}
-            if [ -z "$GREP_POD_NAME" ]
+            if [ -z "$GREP_POD_NAMES" ]
                 then
-                    POD_NAMES="$( oc get pods -n ${value} 2> /dev/null )"
+                    if [ -z "$SKIP_POD_NAMES" ]
+                        then
+                            POD_NAMES="$( oc get pods -n ${value} 2> /dev/null )"
+                        else
+                            echo "Filter Pods by Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
+                            POD_NAMES="$( oc get pods -n ${value} | grep $SKIP_POD_NAMES 2> /dev/null )"
+                    fi
                 else
-                    echo "Filter Pods by Grep command grep $GREP_POD_NAME in namespace ${value}"
-                    POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAME 2> /dev/null )"
+                    if [ -z "$SKIP_POD_NAMES" ]
+                        then
+                            echo "Filter Pods by Grep command grep $GREP_POD_NAMES in namespace ${value}"
+                            POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES 2> /dev/null )"
+                        else
+                            echo "Filter Pods by Grep command grep $GREP_POD_NAMES and Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
+                            POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep $SKIP_POD_NAMES 2> /dev/null )"
+                    fi  
             fi
             if [[ ! "${POD_NAMES}" ]] 
                 then
@@ -163,7 +177,6 @@ fi
                 else
                     printf "\nPods in project ${value}"
                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
-                    echo " Dirr "${CONFIG_DIR}" "
                     echo ${PODS_LIST} | tr ' ' '\n' > ./"${CONFIG_DIR}"/pods/${value}_pods.list
                     check_pod_not_null ${value} ${CONFIG_DIR} ${SINCE_TIME_COMMAND} ${READ_PERIODICALY} ${READOUT_LOG_PERIOD}
 

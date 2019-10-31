@@ -20,7 +20,8 @@ This repository contains components for running either an operational log.io ser
 | HARVESTER_OPENSHIFT     |               "apply"                 | Runs pod with harvester demon and resource discovery script  |
 | LOGIO_SERVER_URL        | "logio-server.${DEPLOY_PROJECT}.svc"  | Here you can specify where harvester will send logs |
 | SINCE_TIME              |                 '1h'                  | Only return logs newer than a relative duration like 5s, 2m, or 3h. Defaults to all logs. Only one of since-time / since may be used.  |
-| GREP_POD_NAME           |              < pattern >              | grep can be used to connect only pods with literal matched by pattern |
+| GREP_POD_NAMES           |              < pattern >              | can be used to connect pods with literal matched by pattern |
+| SKIP_POD_NAMES          |               < pattern >             | can be used to skip pod names with literal matched by pattern |
 | PROJECT_NAME            |          "thunder jenkins-ci"         | write down what project to scan for pod logs ("<1> <'n'>..." Attancion projects must be seperated by "space") If blank than scan all projects |
 | READ_PERIODICALY        |                "yes"                  | open and close connection to pods by applying paraneter "--follow=false" and applying script to restart readout every pod periodicaly |
 | READOUT_LOG_PERIOD      |                "30s"                  | period of redout logs from pods, depends on READ_PERIODICALY parameter |

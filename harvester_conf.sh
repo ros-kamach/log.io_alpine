@@ -13,7 +13,7 @@ CONFIG_DIR="logio_scan_files"
 ##################################
 constructor_harvester_conf_start () {
 # cat <<EOF | tee -a .log.io/harvester.conf
-cat <<EOF | tee -a ./${2}/conf/${1}harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf
 exports.config = {
   nodeName: "${1}",
   logStreams: {
@@ -22,14 +22,14 @@ EOF
 ##################################
 constructor_harvester_conf_stream_log () {
 # cat <<EOF | tee -a .log.io/harvester.conf
-cat <<EOF | tee -a ./${2}/conf/${1}harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf
     "${3}": ["./${2}/logs/${3}.log"],
 EOF
 }
 ##################################
 constructor_harvester_conf_end () {
 # cat <<EOF | tee -a .log.io/harvester.conf
-cat <<EOF | tee -a ./${2}/conf/${1}harvester.conf
+cat <<EOF | tee -a ./${2}/conf/${1}_harvester.conf
 },
   server: {
     host: '${3}',
@@ -169,13 +169,13 @@ fi
 
             fi
             constructor_harvester_conf_end ${value} ${CONFIG_DIR} ${LOGIO_SERVER_URL}
-            if [ "$( cat ./${CONFIG_DIR}/conf/${value}harvester.conf | wc -l )" -le "9" ]
+            if [ "$( cat ./${CONFIG_DIR}/conf/${value}_harvester.conf | wc -l )" -le "9" ]
                 then
                     echo "There are no resource for that paramethers in ${value}"
-                    rm -rf ./${CONFIG_DIR}/conf/${value}harvester.conf
+                    rm -rf ./${CONFIG_DIR}/conf/${value}_harvester.conf
                 else
                     echo "Connecting recources to log.io server ${value}"
-                    cp ./${CONFIG_DIR}/${value}harvester.conf .log.io/harvester.conf
+                    cp ./${CONFIG_DIR}/conf/${value}_harvester.conf .log.io/harvester.conf
                     log.io-harvester &
                     sleep 2
                     rm -rf .log.io/harvester.conf

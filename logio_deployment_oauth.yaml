@@ -8,21 +8,34 @@ metadata:
   namespace: openshift
 objects:
 
-#Logio server Deployment
-- apiVersion: apps.openshift.io/v1
-  kind: DeploymentConfig
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: logio-server-proxy
+    namespace: ${DEPLOY_PROJECT}
+  data:
+    session_secret: ${SITE_SECRET}
+  type: Opaque
+
+- apiVersion: v1
+  kind: ServiceAccount
   metadata:
     annotations:
-      openshift.io/generated-by: OpenShiftWebConsole
-    labels:
-      app: logio-server
+      serviceaccounts.openshift.io/oauth-redirectreference.logio: '{"kind":"OAuthRedirectReference","apiVersion":"v1","reference":{"kind":"Route","name":"logio"}}'
+    name: logio
+    namespace: ${DEPLOY_PROJECT}
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
     name: logio-server
+    labels:
+      name: logio-server
     namespace: ${DEPLOY_PROJECT}
   spec:
     replicas: 1
     selector:
-      app: logio-server
-      deploymentconfig: logio-server
+      name: logio-server
     strategy:
       activeDeadlineSeconds: 21600
       resources: {}
@@ -35,34 +48,58 @@ objects:
       type: Rolling
     template:
       metadata:
-        annotations:
-          openshift.io/generated-by: OpenShiftWebConsole
-        creationTimestamp: null
         labels:
-          app: logio-server
-          deploymentconfig: logio-server
+          name: logio-server
       spec:
         containers:
           - env:
               - name: LOGIO_WEB_OPENSHIFT
-                value: 'apply'
+                value: apply
+            name: logio-server
             image: docker-registry.default.svc/${BUILD_PROJECT}/logio_alpine
             imagePullPolicy: Always
-            name: logio-server
             ports:
-              - containerPort: 28777
+              - name: logio-server
+                containerPort: 28778
                 protocol: TCP
-              - containerPort: 28778
+              - name: logio-harvester
+                containerPort: 28777
                 protocol: TCP
-            resources: {}
-            terminationMessagePath: /dev/termination-log
-            terminationMessagePolicy: File
-        dnsPolicy: ClusterFirst
-        restartPolicy: Always
-        schedulerName: default-scheduler
-        securityContext: {}
-        terminationGracePeriodSeconds: 30
-    test: false
+          - name: oauth-proxy 
+            args:
+              - -provider=openshift
+              - -https-address=:8888
+              - -http-address=
+              - -email-domain=*
+              - -upstream=http://localhost:28778
+              - -tls-cert=/etc/tls/private/tls.crt
+              - -tls-key=/etc/tls/private/tls.key
+              - -client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
+              - -cookie-secret-file=/etc/proxy/secrets/session_secret
+              - -openshift-service-account=logio
+              - -openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+              - -skip-auth-regex=^/metrics
+            image: quay.io/openshift/origin-oauth-proxy:latest
+            imagePullPolicy: IfNotPresent
+            ports:
+              - name: oauth-proxy
+                containerPort: 8888    
+                protocol: TCP
+            volumeMounts:
+              - mountPath: /etc/tls/private
+                name: secret-logio-tls
+              - mountPath: /etc/proxy/secrets
+                name: secret-logio-server-proxy
+        serviceAccountName: logio
+        volumes:
+          - name: secret-logio-tls
+            secret:
+              defaultMode: 420
+              secretName: logio-tls
+          - name: secret-logio-server-proxy
+            secret:
+              defaultMode: 420
+              secretName: logio-server-proxy
     triggers:
       - type: ConfigChange
       - imageChangeParams:
@@ -76,44 +113,51 @@ objects:
           lastTriggeredImage: docker-registry.default.svc/${BUILD_PROJECT}/logio_alpine
         type: ImageChange
 
-#Logio Server service
 - apiVersion: v1
   kind: Service
   metadata:
     annotations:
-      openshift.io/generated-by: OpenShiftWebConsole
+      service.alpha.openshift.io/serving-cert-secret-name: logio-tls
     labels:
-      app: logio-server
+      name: logio-server
     name: logio-server
     namespace: ${DEPLOY_PROJECT}
   spec:
     ports:
-      - name: 28777-tcp
-        port: 28777
-        protocol: TCP
-        targetPort: 28777
-      - name: 28778-tcp
-        port: 28778
-        protocol: TCP
-        targetPort: 28778
+    - name: proxy
+      port: 8888
+      protocol: TCP
+      targetPort: oauth-proxy
+    - name: logio-server
+      port: 28778
+      protocol: TCP
+      targetPort: 28778
+    - name: logio-harvester
+      port: 28777
+      protocol: TCP
+      targetPort: 28777
     selector:
       deploymentconfig: logio-server
     sessionAffinity: None
     type: ClusterIP
 
-#Logio Server Route
 - apiVersion: route.openshift.io/v1
   kind: Route
   metadata:
     annotations:
-      openshift.io/host.generated: 'true'
+      openshift.io/host.generated: "true"
     labels:
-      app: logio-server
+      app: logio-server-deployment
+      name: logio-server
+      template: logio-server-deployment-template
     name: logio
     namespace: ${DEPLOY_PROJECT}
   spec:
     port:
-      targetPort: 28778-tcp
+      targetPort: proxy
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: reencrypt
     to:
       kind: Service
       name: logio-server
@@ -182,7 +226,7 @@ objects:
     name: harvester
     namespace: ${DEPLOY_PROJECT}
   - kind: ServiceAccount
-    name: default
+    name: logio
     namespace: ${DEPLOY_PROJECT}
 
 #Allow containers to run as root
@@ -210,6 +254,7 @@ objects:
     type: RunAsAny
   users:
   - system:serviceaccount:${DEPLOY_PROJECT}:harvester
+  - system:serviceaccount:${DEPLOY_PROJECT}:logio  
   allowHostDirVolumePlugin: false
   allowHostIPC: false
   allowHostNetwork: false
@@ -221,8 +266,6 @@ objects:
   defaultAddCapabilities: null
   fsGroup:
     type: RunAsAny
-  # groups:
-  # - system:cluster-admins
 
 #Deploy Hervester
 - apiVersion: apps.openshift.io/v1
@@ -344,3 +387,9 @@ parameters:
 - description: Project (Namespace)
   displayName: Project (Namespace)
   name: DEPLOY_PROJECT
+- description: Site secret.
+  displayName: Site secret.
+  from: '[a-zA-Z0-9]{40}'
+  generate: expression
+  name: SITE_SECRET
+  required: true

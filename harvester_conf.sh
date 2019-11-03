@@ -51,7 +51,6 @@ files=$(ps aux  | grep -v grep | grep $1 | grep oc | awk '{print$2}')
         echo "Command failed."
     elif [[ ! ${files} ]]; then
         printf "\nNo PID founded for ${1}\n!!! Started\n"
-        echo "oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./${4}/logs/${1}.log >  /dev/null 2>&1 &"
         oc logs -f ${1} ${2} --tail=-1 -n ${3}| tee ./${4}/logs/${1}.log >  /dev/null 2>&1 &
     fi
 done &
@@ -63,7 +62,6 @@ done &
 check_pod_not_null () {
   for val in $( cat ./${2}/pods/${1}_pods.list ); do
       output=$(oc logs -f ${val} --follow=false --tail=-1 -n ${1})
-    #   echo "123 ${output}"
       if [[ $? != 0 ]] 
           then
               echo "Pod ${val} not runned"
@@ -77,19 +75,16 @@ check_pod_not_null () {
                     if [ -z "$5" ]
                         then
                             echo "[ERROR] Missing Readout log period environment variable. Will connect as streem."
-                            echo "oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
                             oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
                             check_pid_kill ${val} ${3} ${1} ${2}
                         else
                             while sleep ${5}
                             do
                                 echo "While do fot ${val} in project ${1}"
-                                echo "oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
                                 oc logs -f ${val} ${3} --follow=false --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
                             done &
                     fi
                 else
-                    echo "oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &"
                     oc logs -f ${val} ${3} --pod-running-timeout=15s --tail=-1 -n ${1} | tee ./${2}/logs/${val}.log >  /dev/null 2>&1 &
                     check_pid_kill ${val} ${3} ${1} ${2}
               fi
@@ -98,6 +93,7 @@ check_pod_not_null () {
 }
 ##################################
 ########Show input param##########
+echo "Input Environment Variables"
 echo "LOGIO_SERVER_URL=$LOGIO_SERVER_URL"
 echo "SINCE_TIME=$SINCE_TIME"
 echo "PROJECT_NAME=$PROJECT_NAME"
@@ -105,6 +101,7 @@ echo "GREP_POD_NAMES=$GREP_POD_NAMES"
 echo "SKIP_POD_NAMES=$SKIP_POD_NAMES"
 echo "READOUT_LOG_PERIOD=$READOUT_LOG_PERIOD"
 echo "READ_PERIODICALY=$READ_PERIODICALY"
+##################################
 if [ -z "$CONFIG_DIR" ]
     then
         echo "[ERROR] Missing config dir environment variable. Aborting."
@@ -146,75 +143,56 @@ if [ -z "$PROJECT_NAME" ]
 fi
 if [ ! -z "$SINCE_TIME" ]
     then
-        echo "SINCE_TIME=$SINCE_TIME"
         SINCE_TIME_COMMAND="--since=$SINCE_TIME"
-        echo "SINCE_TIME_COMMAND=$SINCE_TIME_COMMAND"
 fi
         for value in ${PROJECT_LIST}; do
             constructor_harvester_conf_start ${value} ${CONFIG_DIR}
-            echo "1 GREP_POD_NAMES=$GREP_POD_NAMES"
             if [ -z "$GREP_POD_NAMES" ]
                 then
                     if [ -z "$SKIP_POD_NAMES" ]
                         then
-                            echo "2 oc get pods -n ${value} 2> /dev/null"
                             POD_NAMES="$( oc get pods -n ${value} 2> /dev/null )"
                         else
-                            echo "3 oc get pods -n ${value} | grep -v $SKIP_POD_NAMES 2> /dev/null "
                             echo "Filter Pods by Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
                             POD_NAMES="$( oc get pods -n ${value} | grep -v $SKIP_POD_NAMES 2> /dev/null )"
                     fi
                 else
-                    echo "4 SKIP_POD_NAMES=$SKIP_POD_NAMES"
                     if [ -z "$SKIP_POD_NAMES" ]
                         then
-                            echo "5 oc get pods -n ${value} | grep $GREP_POD_NAMES 2> /dev/null"
                             echo "Filter Pods by Grep command grep $GREP_POD_NAMES in namespace ${value}"
                             POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES 2> /dev/null )"
                         else
-                            echo "6 oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null"
                             echo "Filter Pods by Grep command grep $GREP_POD_NAMES and Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
                             POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null )"
                     fi
             fi
             echo podnames
-            echo "7 POD_NAMES=${POD_NAMES}"
             if [[ ! "${POD_NAMES}" ]] 
                 then
-                    echo 8
                     printf "\nThere are no pods in project ${value}"
                 else
-                    echo 9
                     printf "\nPods in project ${value}"
-                    echo "10 GREP_POD_NAMES=${GREP_POD_NAMES}"
                     if [ -z "$GREP_POD_NAMES" ]
                         then
-                            echo "11 SKIP_POD_NAMES=$SKIP_POD_NAMES"
                             if [ -z "$SKIP_POD_NAMES" ]
                                 then
-                                    echo "12 oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2"
                                     PODS_LIST=$( oc get pods -n ${value} | awk '{ print$1 }' | tail -n +2 )
                                 else
-                                    echo "13 oc get pods -n ${value} | grep -v $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2"
                                     echo "Filter Pods by Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
                                     PODS_LIST="$( oc get pods -n ${value} | grep -v $SKIP_POD_NAMES | awk '{ print$1 }' | tail -n +2 )"
                             fi
                         else
-                            echo "14 SKIP_POD_NAMES=$SKIP_POD_NAMES"
                             if [ -z "$SKIP_POD_NAMES" ]
                                 then
-                                    echo "15 oc get pods -n ${value} | grep $GREP_POD_NAMES | awk '{ print$1 }'"
                                     echo "Filter Pods by Grep command grep $GREP_POD_NAMES in namespace ${value}"
                                     PODS_LIST="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | awk '{ print$1 }' )"
                                 else
-                                    echo "16 oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null"
                                     echo "Filter Pods by Grep command grep $GREP_POD_NAMES and Skipping pattern $SKIP_POD_NAMES in namespace ${value}"
                                     PODS_LIST=$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES | awk '{ print$1 }' )
                             fi
                     fi
                     echo ${PODS_LIST} | tr ' ' '\n' > ./"${CONFIG_DIR}"/pods/${value}_pods.list
                     cat ./"${CONFIG_DIR}"/pods/${value}_pods.list
-                    echo "#######################################"
                     check_pod_not_null ${value} ${CONFIG_DIR} ${SINCE_TIME_COMMAND} ${READ_PERIODICALY} ${READOUT_LOG_PERIOD}
 
             fi

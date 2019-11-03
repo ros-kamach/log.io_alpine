@@ -19,13 +19,13 @@ objects:
       local: false
     tags:
     - annotations:
-        openshift.io/imported-from: roskamach/nodejs_alpine:v6.9.5
+        openshift.io/imported-from: ${NODEJS_IMAGE}
       from:
         kind: DockerImage
-        name: roskamach/nodejs_alpine:v6.9.5
+        name: ${NODEJS_IMAGE}
       generation: 2
       importPolicy: {}
-      name: v6.9.5
+      name: latest
       referencePolicy:
         type: Source
 
@@ -70,28 +70,24 @@ objects:
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: /build/logio
+      contextDir: ${LOGIO_CONTEXT_DIR}
       git:
-        uri: https://github.com/ros-kamach/log.io_openshift
+        uri: ${LOGIO_REPO}
       type: Git
     strategy:
       dockerStrategy:
-        # env:
-        #   - name: OPENSHIFT_CLI
-        #     # value: 'yes'
-        #     value: 'no'
         from:
           kind: ImageStreamTag
-          name: nodejs_alpine:v6.9.5
+          name: nodejs_alpine:latest
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers:
-    - github:
-        secret: eRWXyQKLJT9qXSZzWdNB
-      type: GitHub
-    - generic:
-        secret: aNSpMKtoDrqplwXCFnw4
-      type: Generic
+    # - github:
+    #     secret: eRWXyQKLJT9qXSZzWdNB
+    #   type: GitHub
+    # - generic:
+    #     secret: aNSpMKtoDrqplwXCFnw4
+    #   type: Generic
     - type: ConfigChange
     # - imageChange:
     #     lastTriggeredImageID: roskamach/nodejs_alpine
@@ -115,9 +111,9 @@ objects:
     resources: {}
     runPolicy: Serial
     source:
-      contextDir: /build/logio
+      contextDir: ${HARVESTER_CONTEXT_DIR}
       git:
-        uri: https://github.com/ros-kamach/log.io_openshift
+        uri: ${HARVESTER_REPO}
       type: Git
     strategy:
       dockerStrategy:
@@ -127,23 +123,40 @@ objects:
             value: 'yes'
         from:
           kind: ImageStreamTag
-          name: nodejs_alpine:v6.9.5
+          name: nodejs_alpine:latest
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers:
-    - github:
-        secret: eRWXyQKLJT9qXSZzWdNB
-      type: GitHub
-    - generic:
-        secret: aNSpMKtoDrqplwXCFnw4
-      type: Generic
+    # - github:
+    #     secret: eRWXyQKLJT9qXSZzWdNB
+    #   type: GitHub
+    # - generic:
+    #     secret: aNSpMKtoDrqplwXCFnw4
+    #   type: Generic
     - type: ConfigChange
-    # - imageChange:
-    #     lastTriggeredImageID: roskamach/logio_alpine
-    #   type: ImageChange
 
 parameters:
 - description: Project (Namespace)
   displayName: Project (Namespace)
   name: BUILD_PROJECT
-  # value: "jenkins-ci"
+  value: "openshift"
+- description: Nodejs Image (from)
+  displayName: Nodejs Image (from)
+  name: NODEJS_IMAGE
+  value: "roskamach/nodejs_alpine:v6.9.5"
+- description: logio server Dockerfile repo (from)
+  displayName: logio server Dockerfile repo (from)
+  name: LOGIO_REPO
+  value: "https://github.com/ros-kamach/log.io_openshift"
+- description: logio server Dockerfile context dir (from)
+  displayName: logio server Dockerfile context dir (from)
+  name: LOGIO_CONTEXT_DIR
+  value: "/build/logio"
+- description: harvester Dockerfile repo (from)
+  displayName: harvester Dockerfile repo (from)
+  name: HARVESTER_REPO
+  value: "https://github.com/ros-kamach/log.io_openshift"
+- description: harvester Dockerfile context dir (from)
+  displayName: harvester Dockerfile context dir (from)
+  name: HARVESTER_CONTEXT_DIR
+  value: "/build/logio"

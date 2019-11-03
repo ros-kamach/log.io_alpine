@@ -166,7 +166,6 @@ fi
                             POD_NAMES="$( oc get pods -n ${value} | grep $GREP_POD_NAMES | grep -v $SKIP_POD_NAMES 2> /dev/null )"
                     fi
             fi
-            echo podnames
             if [[ ! "${POD_NAMES}" ]] 
                 then
                     printf "\nThere are no pods in project ${value}"

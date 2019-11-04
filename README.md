@@ -15,17 +15,17 @@ This repository contains components for running either an operational log.io ser
 | ```INSTALL_OPENSHIFT_CLI``` | ```"yes"```    | Install Openshift CLI (needs on the pod with harvester) |
 
 #### Deployment Property:
-| Property                | Valid options   | Description                        |
-|:-------------------------|:-----------------:|------------------------------------|
+| Property                      | Valid options                               | Description                                             |
+|:------------------------------|:-------------------------------------------:|---------------------------------------------------------|
 | ```LOGIO_WEB_OPENSHIFT```     |               ```"apply"```                 | pod with log.io server demon  |
 | ```HARVESTER_OPENSHIFT```     |               ```"apply"```                 | pod with harvester demon and resource discovery script  |
-| ```LOGIO_SERVER_URL```        | ```"logio-server.${DEPLOY_PROJECT}.svc"```  | harvester sends logs to this URL |
+| ```LOGIO_SERVER_URL```        | ```"logio-server.${DEPLOY_PROJECT}.svc"```  | harvester sends logs to this URL                        |
 | ```SINCE_TIME```              |```"30s"```<br>```"5m"```<br>```"1h"```      | Only return logs newer than a relative duration like 5s, 2m, or 3h. Defaults to all logs. Only one of since-time / since may be used.  |
-| ```GREP_POD_NAMES```           |              ```<pattern>```             | connect pods with literal matched by pattern only |
-| ```SKIP_POD_NAMES```          |               ```<pattern>```             | skip pod names with literal matched by pattern |
-| ```PROJECT_NAME```            |          ```"1_project 2_project n_project"```        | project to scan for pod logs ("<1> <'n'>..." Attention projects must be separated by "space"). **If empty it scans all project names** |
-| ```READ_PERIODICALY```        |                ```"yes"```                  | open and close connection to pods by applying parameter "--follow=false" and applying script to restart and read out every pod periodically |
-| ```READOUT_LOG_PERIOD```      |                ```"30s"``` / ```"1h"```                  | interval of reading out logs from pods (depends on READ_PERIODICALY parameter) |
+| ```GREP_POD_NAMES```           |              ```<pattern>```               | connect pods with literal matched by pattern only |
+| ```SKIP_POD_NAMES```          |               ```<pattern>```               | skip pod names with literal matched by pattern |
+| ```PROJECT_NAME```            | ```"1_project 2_project n_project"```       | project to scan for pod logs ("<1> <'n'>..." Attention projects must be separated by "space"). **If empty it scans all project names** |
+| ```READ_PERIODICALY```        |                 ```"yes"```                 | open and close connection to pods by applying parameter "--follow=false" and applying script to restart and read out every pod periodically |
+| ```READOUT_LOG_PERIOD```      |  ```"30s"```<br>```"5m"```<br>```"1h"```    | interval of reading out logs from pods (depends on READ_PERIODICALY parameter) |
 
 # To implement:
 

@@ -53,7 +53,7 @@ $ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=openshift-infra -p
 ***
 ### b) without OpenShift OAuth Proxy
 ```
-$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=openshift-infra -p | oc apply -f -
+$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=openshift-infra | oc apply -f -
 ```
 or (specific build namespace)
 ```

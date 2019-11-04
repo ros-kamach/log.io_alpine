@@ -82,17 +82,7 @@ objects:
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers:
-    # - github:
-    #     secret: eRWXyQKLJT9qXSZzWdNB
-    #   type: GitHub
-    # - generic:
-    #     secret: aNSpMKtoDrqplwXCFnw4
-    #   type: Generic
     - type: ConfigChange
-    # - imageChange:
-    #     lastTriggeredImageID: roskamach/nodejs_alpine
-    #   type: ImageChange
-
 
 #Create build with docker strategy for Harvester
 - apiVersion: build.openshift.io/v1
@@ -127,12 +117,6 @@ objects:
       type: Docker
     successfulBuildsHistoryLimit: 5
     triggers:
-    # - github:
-    #     secret: eRWXyQKLJT9qXSZzWdNB
-    #   type: GitHub
-    # - generic:
-    #     secret: aNSpMKtoDrqplwXCFnw4
-    #   type: Generic
     - type: ConfigChange
 
 parameters:

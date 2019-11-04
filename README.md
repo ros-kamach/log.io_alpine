@@ -29,14 +29,6 @@ This repository contains components for running either an operational log.io ser
 
 # To implement:
 
-syntax:
-```
-$ oc process -f logio_build.yaml -p BUILD_PROJECT=<project name for deploy> | oc <apply or delete> -f - 
-```
-```
-$ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=<project name for deploy> -p BUILD_PROJECT=<project name for deploy> | oc <apply or delete> -f - 
-```
-examples:
 ### Process Build
 ```
 $ oc process -f logio_build.yaml | oc apply -f -
@@ -47,19 +39,19 @@ $ oc process -f logio_build.yaml -p BUILD_PROJECT=openshift | oc apply -f -
 ```
 ### Process Deploy with OpenShift OAuth Proxy
 ```
-$ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=thunder -p | oc apply -f -
+$ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=openshift-infra -p | oc apply -f -
 ```
 or (specific build namespace)
 ```
-$ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=thunder -p BUILD_PROJECT=openshift | oc apply -f -
+$ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=openshift-infra -p BUILD_PROJECT=openshift | oc apply -f -
 ```
 ### Process Deploy without OpenShift OAuth Proxy
 ```
-$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=thunder -p | oc apply -f -
+$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=openshift-infra -p | oc apply -f -
 ```
 or (specific build namespace)
 ```
-$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=thunder -p BUILD_PROJECT=openshift | oc apply -f -
+$ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=openshift-infra -p BUILD_PROJECT=openshift | oc apply -f -
 ```
 
 # How does it work?

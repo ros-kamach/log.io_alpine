@@ -29,7 +29,8 @@ This repository contains components for running either an operational log.io ser
 
 # To implement:
 
-### Process Build
+### 1) Process Build Images
+***
 ```
 $ oc process -f logio_build.yaml | oc apply -f -
 ```
@@ -38,7 +39,10 @@ or (specific build namespace)
 $ oc process -f logio_build.yaml -p BUILD_PROJECT=openshift | oc apply -f -
 ```
 ***
-### Process Deploy with OpenShift OAuth Proxy
+***
+### 2) Process Deployment 
+***
+### a) with OpenShift OAuth Proxy
 ```
 $ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=openshift-infra -p | oc apply -f -
 ```
@@ -47,7 +51,7 @@ or (specific build namespace)
 $ oc process -f logio_deployment_oauth.yaml -p DEPLOY_PROJECT=openshift-infra -p BUILD_PROJECT=openshift | oc apply -f -
 ```
 ***
-### Process Deploy without OpenShift OAuth Proxy
+### b) without OpenShift OAuth Proxy
 ```
 $ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=openshift-infra -p | oc apply -f -
 ```
@@ -55,6 +59,7 @@ or (specific build namespace)
 ```
 $ oc process -f logio_deployment.yaml -p DEPLOY_PROJECT=openshift-infra -p BUILD_PROJECT=openshift | oc apply -f -
 ```
+***
 ***
 
 # How does it work?

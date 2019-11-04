@@ -10,7 +10,7 @@ This repository contains components for running either an operational log.io ser
 3) project for build and deploy must exist, recomends to use "openshift" for build and "openshift-infra" (or other project dedicated to cluster admins) for deploy. If you want other project name, you can create it by ```oc new-project <project name>```
 4) building image runs by default in namespace "openshift", but can be changed by adding to command parameter ```-p BUILD_PROJECT=<project name> ```
 
-#### Build Proberty:
+#### Build Property:
 | Property                   | Valid options   | Description                        |
 |:-------------------------|:-----------------:|------------------------------------|         
 | ```INSTALL_OPENSHIFT_CLI``` | ```"yes"```    | Install Openshift CLI (needs on the pod with harvester) |

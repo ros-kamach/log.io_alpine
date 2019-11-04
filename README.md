@@ -6,7 +6,7 @@ This repository contains components for running either an operational log.io ser
 #### Before begin:
 1) must be logged via openshift-cli with the account which has administrator privileges (cluster-admin)
 2) clone the repository<img src="https://help.github.com/assets/images/help/repository/clone-repo-clone-url-button.png" alt="Thunder" width="20%"/>
-3) project for build and deploy must exist, recomends to use "openshift" for build and "openshift-infra" (or other project dedicated to cluster admins) for deploy. If you want other project name, you can create it by ```oc new-project < project name >```
+3) project for build and deploy must exist, recomends to use "openshift" for build and "openshift-infra" (or other project dedicated to cluster admins) for deploy. If you want other project name, you can create it by ```$ oc new-project < project name >```
 4) building image runs by default in namespace "openshift", but can be changed by adding to command parameter ```-p BUILD_PROJECT=< project name > ```
 
 #### Build Property:

@@ -4,18 +4,18 @@
 This repository contains components for running either an operational log.io server and harvester setup for your OpenShift cluster. 
 
 #### Before begin:
-1) must be logged via openshift-cli with an account which has administrator privileges (cluster-admin)
+1) must be logged via openshift-cli with the account which has administrator privileges (cluster-admin)
 2) project for build and deploy must exist. If not, you can create it by ```oc new-project <project name>```
 3) building image runs by default runs in namespace "openshift", but can be changed by adding to command parameter ```-p BUILD_PROJECT=<project name> ```
 
 #### Build Proberty:
 | Property                | Valid options   | Description                        |
-|-------------------------|-----------------|------------------------------------|         
-| INSTALL_OPENSHIFT_CLI | "yes"    | Install Openshift CLI (needs on the pod with harvester) |
+|:-------------------------|:-----------------:|------------------------------------|         
+| ```INSTALL_OPENSHIFT_CLI``` | ```"yes"```    | Install Openshift CLI (needs on the pod with harvester) |
 
 #### Deployment Proberty:
 | Property                | Valid options   | Description                        |
-|-------------------------|-----------------|------------------------------------|
+|:-------------------------|:-----------------:|------------------------------------|
 | LOGIO_WEB_OPENSHIFT     |               "apply"                 | pod with log.io server demon  |
 | HARVESTER_OPENSHIFT     |               "apply"                 | pod with harvester demon and resource discovery script  |
 | LOGIO_SERVER_URL        | "logio-server.${DEPLOY_PROJECT}.svc"  | harvester sends logs to this URL |
